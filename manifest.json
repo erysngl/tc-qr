@@ -1,22 +1,25 @@
 {
+  "id": "tc-kimlik-qr-app",
   "name": "TC Kimlik QR",
   "short_name": "TC-QR",
-  "start_url": "index.html",
+  "description": "TC Kimlik Numarasını QR Koda Çevirici",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='364' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='364' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='364' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='364' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]
