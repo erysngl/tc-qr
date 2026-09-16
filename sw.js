@@ -1,12 +1,15 @@
+const CACHE_NAME = 'tcqr-v1';
+
 self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(self.clients.claim());
+  e.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', (e) => {
-  // Service worker aktif tutucu
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
+  );
 });
