@@ -2,50 +2,84 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TC Kimlik -> QR</title>
+
+  <!-- PWA Ayarları ve İkon (Data URI ile tek parça) -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Cpath fill='%2338bdf8' d='M80 80h140v140H80zm40 40v60h60v-60zm172-40h140v140H292zm40 40v60h60v-60zM80 292h140v140H80zm40 40v60h60v-60zm212-40h40v40h-40zm60 0h40v80h-40zm-60 60h40v40h-40zm60 40h40v40h-40zm-60 0h40v40h-40z'/%3E%3Cpath stroke='%232563eb' stroke-width='16' stroke-linecap='round' d='M60 256h392'/%3E%3C/svg%3E">
+  
+  <link rel="manifest" href='data:application/manifest+json,{"name":"TC to QR","short_name":"TC-QR","start_url":".","display":"standalone","background_color":"%230f172a","theme_color":"%230f172a","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"%3E%3Crect width=\"512\" height=\"512\" rx=\"100\" fill=\"%230f172a\"/%3E%3Cpath fill=\"%2338bdf8\" d=\"M80 80h140v140H80zm40 40v60h60v-60zm172-40h140v140H292zm40 40v60h60v-60zM80 292h140v140H80zm40 40v60h60v-60zm212-40h40v40h-40zm60 0h40v80h-40zm-60 60h40v40h-40zm60 40h40v40h-40zm-60 0h40v40h-40z\"/%3E%3Cpath stroke=\"%232563eb\" stroke-width=\"16\" stroke-linecap=\"round\" d=\"M60 256h392\"/%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}'>
+
+  <!-- Kütüphaneler -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #f8fafc; padding: 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    
+    body { 
+      background: #0f172a; color: #f8fafc; padding: 16px 16px 30px; 
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
+    }
+
+    /* En Üstteki Durum Bildirim Alanı */
+    #status-badge {
+      width: 100%; max-width: 400px; padding: 12px 16px; margin-bottom: 12px;
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      font-size: 14px; font-weight: 600; text-align: center; color: #38bdf8;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); transition: all 0.2s ease;
+    }
+
+    /* Sonuç / QR Alanı */
     #result-box { 
       width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #38bdf8; 
-      border-radius: 12px; padding: 16px; margin-bottom: 12px; text-align: center; display: none; 
+      border-radius: 12px; padding: 16px; margin-bottom: 14px; text-align: center; display: none; 
     }
     #detected-tc { font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #38bdf8; margin-bottom: 10px; }
     #qrcode { display: inline-block; padding: 10px; background: #fff; border-radius: 8px; }
 
+    /* Kamera ve Tarama Alanı */
     .camera-wrapper { 
       position: relative; width: 100%; max-width: 400px; border-radius: 12px; 
       overflow: hidden; border: 2px solid #334155; background: #000; 
     }
-    video { width: 100%; display: block; }
+    video { width: 100%; display: block; object-fit: cover; }
     
     .guide-box {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 75%; height: 60px; border: 2px dashed #38bdf8; border-radius: 8px;
+      width: 80%; height: 64px; border: 2px dashed #38bdf8; border-radius: 8px;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none;
     }
 
     .btn { 
       margin-top: 14px; padding: 16px; font-size: 17px; font-weight: 700; 
       background: #2563eb; color: #fff; border: none; border-radius: 10px; 
-      cursor: pointer; width: 100%; max-width: 400px; 
+      cursor: pointer; width: 100%; max-width: 400px; transition: background 0.2s;
     }
-    .btn:disabled { background: #475569; }
-    #status { margin-top: 10px; font-size: 14px; color: #94a3b8; text-align: center; }
+    .btn:active { background: #1d4ed8; }
+    .btn:disabled { background: #475569; cursor: not-allowed; }
+
+    /* İmza */
+    .signature {
+      margin-top: auto; padding-top: 24px; font-size: 13px; font-weight: 700;
+      letter-spacing: 2px; color: #64748b; text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Sonuç En Üstte Çıkar -->
+  <!-- En Üstteki Durum Yazısı -->
+  <div id="status-badge">Kamera başlatılıyor...</div>
+
+  <!-- QR Sonuç Kutusu -->
   <div id="result-box">
     <div id="detected-tc"></div>
     <div id="qrcode"></div>
   </div>
 
+  <!-- Kamera Penceresi -->
   <div class="camera-wrapper">
     <video id="camera" autoplay playsinline muted></video>
     <div class="guide-box"></div>
@@ -54,17 +88,20 @@
   <canvas id="snapshot" style="display: none;"></canvas>
 
   <button id="scan-btn" class="btn">Tara ve QR Kod Üret</button>
-  <div id="status">Kutuyu TC kimlik numarasına denk getirin.</div>
+
+  <!-- İmzanız -->
+  <div class="signature">ERYSNGL</div>
 
   <script>
     const video = document.getElementById('camera');
     const canvas = document.getElementById('snapshot');
     const scanBtn = document.getElementById('scan-btn');
-    const statusText = document.getElementById('status');
+    const statusBadge = document.getElementById('status-badge');
     const resultBox = document.getElementById('result-box');
     const detectedTc = document.getElementById('detected-tc');
     const qrContainer = document.getElementById('qrcode');
 
+    // TC Doğrulama Algoritması
     function tcDogrula(tc) {
       if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
       const d = tc.split('').map(Number);
@@ -75,27 +112,36 @@
       return d[9] === ((hane10 + 10) % 10) && d[10] === hane11;
     }
 
+    // Kamera Başlatma
     navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
-    }).then(stream => { video.srcObject = stream; })
-      .catch(() => { statusText.textContent = "Kamera izni alınamadı."; });
+    }).then(stream => { 
+      video.srcObject = stream;
+      statusBadge.textContent = "Kutuyu TC kimlik numarasına denk getirin.";
+      statusBadge.style.color = "#38bdf8";
+    }).catch(() => { 
+      statusBadge.textContent = "Kamera izni alınamadı."; 
+      statusBadge.style.color = "#f87171";
+    });
 
+    // Tarama Tetikleme
     scanBtn.addEventListener('click', async () => {
       if (!video.videoWidth) return;
       scanBtn.disabled = true;
-      statusText.textContent = "Görüntü taranıyor...";
+      statusBadge.style.color = "#fbbf24";
+      statusBadge.textContent = "Görüntü yakalandı, taranıyor...";
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // OCR Başarısını artırmak için kontrast & parlaklık filtresi
+      // OCR Kontrast Filtresi
       const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const d = imgData.data;
       for (let i = 0; i < d.length; i += 4) {
         let v = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
-        v = v > 140 ? 255 : 0; // Siyah-beyaz eşikleme
+        v = v > 140 ? 255 : 0;
         d[i] = d[i + 1] = d[i + 2] = v;
       }
       ctx.putImageData(imgData, 0, 0);
@@ -105,7 +151,7 @@
           tessedit_char_whitelist: '0123456789',
           logger: m => {
             if (m.status === 'recognizing text') {
-              statusText.textContent = `Taranıyor... %${Math.round(m.progress * 100)}`;
+              statusBadge.textContent = `Taranıyor... %${Math.round(m.progress * 100)}`;
             }
           }
         });
@@ -124,13 +170,16 @@
             correctLevel: QRCode.CorrectLevel.M
           });
           resultBox.style.display = 'block';
-          statusText.textContent = "QR Kod Hazır!";
+          statusBadge.textContent = "✓ Geçerli TC Kimlik Bulundu!";
+          statusBadge.style.color = "#4ade80";
           window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
-          statusText.textContent = "Net okunamadı. TC'yi ortadaki kutuya denk getirip tekrar deneyin.";
+          statusBadge.textContent = "Okunamadı. Kutuyu numaraya yaklaştırıp deneyin.";
+          statusBadge.style.color = "#f87171";
         }
       } catch (err) {
-        statusText.textContent = "Tarama hatası.";
+        statusBadge.textContent = "Tarama hatası oluştu.";
+        statusBadge.style.color = "#f87171";
       } finally {
         scanBtn.disabled = false;
       }
