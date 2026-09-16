@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TC Kimlik -> QR</title>
 
-  <!-- PWA Standartları -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
@@ -13,29 +12,32 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='364' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='364' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E">
 
-  <!-- Harici Kütüphaneler -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { 
-      background: #0f172a; color: #f8fafc; padding: 16px 16px 36px; 
+      background: #0f172a; color: #f8fafc; padding: 70px 16px 36px; 
       display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
     }
 
-    #install-app-btn {
-      display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 12px;
-      background: #16a34a; color: #fff; font-size: 15px; font-weight: 700;
-      border: none; border-radius: 10px; cursor: pointer; text-align: center;
-      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
+    /* En Üstte Sabit Durum Bildirimi */
+    #status-badge {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      width: calc(100% - 32px); max-width: 400px; padding: 12px 16px;
+      background: #1e293bd9; backdrop-filter: blur(8px);
+      border: 1px solid #334155; border-radius: 12px;
+      font-size: 14px; font-weight: 700; text-align: center; color: #38bdf8;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); z-index: 1000;
+      transition: all 0.2s ease;
     }
 
-    #status-badge {
-      width: 100%; max-width: 400px; padding: 12px 16px; margin-bottom: 12px;
-      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
-      font-size: 14px; font-weight: 600; text-align: center; color: #38bdf8;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    #install-app-btn {
+      display: none; width: 100%; max-width: 400px; padding: 12px; margin-bottom: 12px;
+      background: #16a34a; color: #fff; font-size: 14px; font-weight: 700;
+      border: none; border-radius: 10px; cursor: pointer; text-align: center;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
     }
 
     #result-box { 
@@ -45,29 +47,34 @@
     #detected-tc { font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #38bdf8; margin-bottom: 10px; }
     #qrcode { display: inline-block; padding: 10px; background: #fff; border-radius: 8px; }
 
+    /* Kamera Kapsayıcısı */
     .camera-wrapper { 
-      position: relative; width: 100%; max-width: 400px; border-radius: 12px; 
+      position: relative; width: 100%; max-width: 400px; border-radius: 14px; 
       overflow: hidden; border: 2px solid #334155; background: #000; 
     }
     video { width: 100%; display: block; object-fit: cover; }
     
     .guide-box {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
       width: 80%; height: 64px; border: 2px dashed #38bdf8; border-radius: 8px;
       box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none;
     }
 
-    .btn { 
-      margin-top: 14px; padding: 16px; font-size: 17px; font-weight: 700; 
-      background: #2563eb; color: #fff; border: none; border-radius: 10px; 
-      cursor: pointer; width: 100%; max-width: 400px; transition: background 0.2s;
+    /* Kamera Üzerindeki Yüzen Buton */
+    #scan-btn { 
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      padding: 12px 28px; font-size: 16px; font-weight: 700; 
+      background: #2563ebd9; backdrop-filter: blur(4px); color: #fff; 
+      border: 1px solid #60a5fa; border-radius: 30px; 
+      cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      transition: transform 0.15s ease, opacity 0.2s ease;
+      z-index: 10;
     }
-    .btn:active { background: #1d4ed8; }
-    .btn:disabled { background: #475569; cursor: not-allowed; }
+    #scan-btn:active { transform: translateX(-50%) scale(0.95); }
 
-    /* Cihaz İçi Geçmiş Bölümü */
+    /* Cihaz İçi Geçmiş */
     .history-card {
-      width: 100%; max-width: 400px; margin-top: 24px; background: #1e293b;
+      width: 100%; max-width: 400px; margin-top: 20px; background: #1e293b;
       border: 1px solid #334155; border-radius: 12px; padding: 16px;
     }
     .history-header {
@@ -97,25 +104,27 @@
 </head>
 <body>
 
-  <button id="install-app-btn">📲 Uygulamayı Telefona Yükle</button>
+  <!-- Ekranın En Üstünde Sabit Kalan Bildirim Rozeti -->
   <div id="status-badge">Kamera başlatılıyor...</div>
 
-  <!-- QR Kod Sonuç Alanı -->
+  <button id="install-app-btn">📲 Uygulamayı Telefona Yükle</button>
+
+  <!-- QR Kod Çıktısı -->
   <div id="result-box">
     <div id="detected-tc"></div>
     <div id="qrcode"></div>
   </div>
 
+  <!-- Kamera ve Üzerindeki Buton -->
   <div class="camera-wrapper">
     <video id="camera" autoplay playsinline muted></video>
     <div class="guide-box"></div>
+    <button id="scan-btn">Tara</button>
   </div>
 
   <canvas id="snapshot" style="display: none;"></canvas>
 
-  <button id="scan-btn" class="btn">Tara ve QR Kod Üret</button>
-
-  <!-- Cihaz İçi Geçmiş Bölümü -->
+  <!-- Cihaz İçi Geçmiş -->
   <div class="history-card">
     <div class="history-header">
       <h4>📱 Cihaz İçi Geçmiş</h4>
@@ -158,7 +167,6 @@
     const historyList = document.getElementById('history-list');
     const clearHistoryBtn = document.getElementById('clear-history-btn');
 
-    // --- Yerel Depolama (Sadece Telefon İçi) Mantığı ---
     function getHistory() {
       try {
         return JSON.parse(localStorage.getItem('tc_history_local') || '[]');
@@ -169,16 +177,11 @@
 
     function saveToHistory(tc) {
       let list = getHistory();
-      // Aynı TC daha önce kaydedilmişse en başa taşımak için eskiyi sil
       list = list.filter(item => item.tc !== tc);
-      
       const now = new Date();
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
       list.unshift({ tc: tc, time: timeStr, timestamp: Date.now() });
-      // En son 50 kaydı cihazda tut
       if (list.length > 50) list = list.slice(0, 50);
-      
       localStorage.setItem('tc_history_local', JSON.stringify(list));
       renderHistory();
     }
@@ -190,12 +193,10 @@
         historyList.innerHTML = '<li class="empty-history">Henüz kayıtlı numara yok.</li>';
         return;
       }
-
       list.forEach(item => {
         const li = document.createElement('li');
         li.className = 'history-item';
         li.innerHTML = `<span class="history-tc">${item.tc}</span><span class="history-time">${item.time}</span>`;
-        // Geçmişteki numaraya tıklanırsa doğrudan ekranda QR oluştur
         li.addEventListener('click', () => {
           showQrCode(item.tc);
           statusBadge.textContent = "Geçmişten yüklendi!";
@@ -222,7 +223,6 @@
         correctLevel: QRCode.CorrectLevel.M
       });
       resultBox.style.display = 'block';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function tcDogrula(tc) {
@@ -239,7 +239,7 @@
       video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
     }).then(stream => { 
       video.srcObject = stream;
-      statusBadge.textContent = "Kutuyu TC kimlik numarasına denk getirin.";
+      statusBadge.textContent = "Kutuyu TC numarasına tutun.";
       statusBadge.style.color = "#38bdf8";
     }).catch(() => { 
       statusBadge.textContent = "Kamera izni alınamadı."; 
@@ -248,7 +248,9 @@
 
     scanBtn.addEventListener('click', async () => {
       if (!video.videoWidth) return;
-      scanBtn.disabled = true;
+      
+      // Butonu gizle, durum yazısını güncelle
+      scanBtn.style.display = 'none';
       statusBadge.style.color = "#fbbf24";
       statusBadge.textContent = "Görüntü taranıyor...";
 
@@ -282,22 +284,22 @@
 
         if (gecerliTc) {
           showQrCode(gecerliTc);
-          saveToHistory(gecerliTc); // Sadece cihaz belleğine yazılır
+          saveToHistory(gecerliTc);
           statusBadge.textContent = "✓ Geçerli TC Kimlik Bulundu!";
           statusBadge.style.color = "#4ade80";
         } else {
-          statusBadge.textContent = "Okunamadı. Kutuyu numaraya yaklaştırıp deneyin.";
+          statusBadge.textContent = "Okunamadı. Kutuyu hizalayıp tekrar deneyin.";
           statusBadge.style.color = "#f87171";
         }
       } catch (err) {
         statusBadge.textContent = "Tarama hatası oluştu.";
         statusBadge.style.color = "#f87171";
       } finally {
-        scanBtn.disabled = false;
+        // Tarama bitince butonu tekrar göster
+        scanBtn.style.display = 'block';
       }
     });
 
-    // Sayfa açıldığında yerel geçmişi listele
     renderHistory();
   </script>
 </body>
