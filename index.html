@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TC Kimlik -> QR</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+    body { background: #0f172a; color: #f8fafc; padding: 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    
+    #result-box { 
+      width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #38bdf8; 
+      border-radius: 12px; padding: 16px; margin-bottom: 12px; text-align: center; display: none; 
+    }
+    #detected-tc { font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #38bdf8; margin-bottom: 10px; }
+    #qrcode { display: inline-block; padding: 10px; background: #fff; border-radius: 8px; }
+
+    .camera-wrapper { 
+      position: relative; width: 100%; max-width: 400px; border-radius: 12px; 
+      overflow: hidden; border: 2px solid #334155; background: #000; 
+    }
+    video { width: 100%; display: block; }
+    
+    .guide-box {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 75%; height: 60px; border: 2px dashed #38bdf8; border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none;
+    }
+
+    .btn { 
+      margin-top: 14px; padding: 16px; font-size: 17px; font-weight: 700; 
+      background: #2563eb; color: #fff; border: none; border-radius: 10px; 
+      cursor: pointer; width: 100%; max-width: 400px; 
+    }
+    .btn:disabled { background: #475569; }
+    #status { margin-top: 10px; font-size: 14px; color: #94a3b8; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <!-- Sonuç En Üstte Çıkar -->
+  <div id="result-box">
+    <div id="detected-tc"></div>
+    <div id="qrcode"></div>
+  </div>
+
+  <div class="camera-wrapper">
+    <video id="camera" autoplay playsinline muted></video>
+    <div class="guide-box"></div>
+  </div>
+
+  <canvas id="snapshot" style="display: none;"></canvas>
+
+  <button id="scan-btn" class="btn">Tara ve QR Kod Üret</button>
+  <div id="status">Kutuyu TC kimlik numarasına denk getirin.</div>
+
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('snapshot');
+    const scanBtn = document.getElementById('scan-btn');
+    const statusText = document.getElementById('status');
+    const resultBox = document.getElementById('result-box');
+    const detectedTc = document.getElementById('detected-tc');
+    const qrContainer = document.getElementById('qrcode');
+
+    function tcDogrula(tc) {
+      if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
+      const d = tc.split('').map(Number);
+      const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
+      const ciftler = d[1] + d[3] + d[5] + d[7];
+      const hane10 = ((tekler * 7) - ciftler) % 10;
+      const hane11 = d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
+      return d[9] === ((hane10 + 10) % 10) && d[10] === hane11;
+    }
+
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    }).then(stream => { video.srcObject = stream; })
+      .catch(() => { statusText.textContent = "Kamera izni alınamadı."; });
+
+    scanBtn.addEventListener('click', async () => {
+      if (!video.videoWidth) return;
+      scanBtn.disabled = true;
+      statusText.textContent = "Görüntü taranıyor...";
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // OCR Başarısını artırmak için kontrast & parlaklık filtresi
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        let v = (d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114);
+        v = v > 140 ? 255 : 0; // Siyah-beyaz eşikleme
+        d[i] = d[i + 1] = d[i + 2] = v;
+      }
+      ctx.putImageData(imgData, 0, 0);
+
+      try {
+        const { data: { text } } = await Tesseract.recognize(canvas, 'eng', {
+          tessedit_char_whitelist: '0123456789',
+          logger: m => {
+            if (m.status === 'recognizing text') {
+              statusText.textContent = `Taranıyor... %${Math.round(m.progress * 100)}`;
+            }
+          }
+        });
+
+        const temiz = text.replace(/[^0-9]/g, ' ');
+        const adaylar = temiz.match(/\b[1-9][0-9]{10}\b/g) || [];
+        const gecerliTc = adaylar.find(tcDogrula);
+
+        if (gecerliTc) {
+          detectedTc.textContent = gecerliTc;
+          qrContainer.innerHTML = '';
+          new QRCode(qrContainer, {
+            text: gecerliTc,
+            width: 200,
+            height: 200,
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          resultBox.style.display = 'block';
+          statusText.textContent = "QR Kod Hazır!";
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          statusText.textContent = "Net okunamadı. TC'yi ortadaki kutuya denk getirip tekrar deneyin.";
+        }
+      } catch (err) {
+        statusText.textContent = "Tarama hatası.";
+      } finally {
+        scanBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
