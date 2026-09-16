@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TC Kimlik -> QR</title>
 
-  <!-- PWA Ayarları -->
+  <!-- PWA Standartları -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
@@ -20,7 +20,7 @@
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { 
-      background: #0f172a; color: #f8fafc; padding: 16px 16px 28px; 
+      background: #0f172a; color: #f8fafc; padding: 16px 16px 36px; 
       display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
     }
 
@@ -30,7 +30,6 @@
       border: none; border-radius: 10px; cursor: pointer; text-align: center;
       box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4);
     }
-    #install-app-btn:active { transform: scale(0.98); }
 
     #status-badge {
       width: 100%; max-width: 400px; padding: 12px 16px; margin-bottom: 12px;
@@ -66,8 +65,32 @@
     .btn:active { background: #1d4ed8; }
     .btn:disabled { background: #475569; cursor: not-allowed; }
 
+    /* Cihaz İçi Geçmiş Bölümü */
+    .history-card {
+      width: 100%; max-width: 400px; margin-top: 24px; background: #1e293b;
+      border: 1px solid #334155; border-radius: 12px; padding: 16px;
+    }
+    .history-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+    }
+    .history-header h4 { font-size: 15px; color: #cbd5e1; font-weight: 700; }
+    .clear-btn {
+      background: transparent; color: #ef4444; border: 1px solid #ef4444;
+      border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+    .history-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .history-item:active { background: #1e293b; }
+    .history-tc { font-weight: 700; font-size: 15px; color: #38bdf8; letter-spacing: 1px; }
+    .history-time { font-size: 12px; color: #64748b; }
+    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 10px 0; }
+
     .signature {
-      margin-top: auto; padding-top: 24px; font-size: 13px; font-weight: 700;
+      margin-top: 24px; font-size: 13px; font-weight: 700;
       letter-spacing: 2px; color: #64748b; text-transform: uppercase;
     }
   </style>
@@ -75,9 +98,9 @@
 <body>
 
   <button id="install-app-btn">📲 Uygulamayı Telefona Yükle</button>
-
   <div id="status-badge">Kamera başlatılıyor...</div>
 
+  <!-- QR Kod Sonuç Alanı -->
   <div id="result-box">
     <div id="detected-tc"></div>
     <div id="qrcode"></div>
@@ -92,51 +115,38 @@
 
   <button id="scan-btn" class="btn">Tara ve QR Kod Üret</button>
 
+  <!-- Cihaz İçi Geçmiş Bölümü -->
+  <div class="history-card">
+    <div class="history-header">
+      <h4>📱 Cihaz İçi Geçmiş</h4>
+      <button id="clear-history-btn" class="clear-btn">Temizle</button>
+    </div>
+    <ul id="history-list" class="history-list"></ul>
+  </div>
+
   <div class="signature">ERYSNGL</div>
 
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js', { scope: './' })
-          .then(reg => console.log('SW Başarılı:', reg.scope))
-          .catch(err => console.error('SW Başarısız:', err));
+        navigator.serviceWorker.register('sw.js', { scope: './' }).catch(() => {});
       });
     }
 
     let deferredPrompt;
     const installBtn = document.getElementById('install-app-btn');
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       installBtn.style.display = 'block';
     });
-
     installBtn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          installBtn.style.display = 'none';
-        }
         deferredPrompt = null;
+        installBtn.style.display = 'none';
       }
     });
-
-    window.addEventListener('appinstalled', () => {
-      installBtn.style.display = 'none';
-    });
-
-    function tcDogrula(tc) {
-      if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
-      const d = tc.split('').map(Number);
-      const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
-      const ciftler = d[1] + d[3] + d[5] + d[7];
-      const hane10 = ((tekler * 7) - ciftler) % 10;
-      const hane10Düzeltilmis = (hane10 + 10) % 10;
-      const hane11 = d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
-      return d[9] === hane10Düzeltilmis && d[10] === hane11;
-    }
 
     const video = document.getElementById('camera');
     const canvas = document.getElementById('snapshot');
@@ -145,6 +155,85 @@
     const resultBox = document.getElementById('result-box');
     const detectedTc = document.getElementById('detected-tc');
     const qrContainer = document.getElementById('qrcode');
+    const historyList = document.getElementById('history-list');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
+
+    // --- Yerel Depolama (Sadece Telefon İçi) Mantığı ---
+    function getHistory() {
+      try {
+        return JSON.parse(localStorage.getItem('tc_history_local') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveToHistory(tc) {
+      let list = getHistory();
+      // Aynı TC daha önce kaydedilmişse en başa taşımak için eskiyi sil
+      list = list.filter(item => item.tc !== tc);
+      
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      list.unshift({ tc: tc, time: timeStr, timestamp: Date.now() });
+      // En son 50 kaydı cihazda tut
+      if (list.length > 50) list = list.slice(0, 50);
+      
+      localStorage.setItem('tc_history_local', JSON.stringify(list));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = getHistory();
+      historyList.innerHTML = '';
+      if (list.length === 0) {
+        historyList.innerHTML = '<li class="empty-history">Henüz kayıtlı numara yok.</li>';
+        return;
+      }
+
+      list.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'history-item';
+        li.innerHTML = `<span class="history-tc">${item.tc}</span><span class="history-time">${item.time}</span>`;
+        // Geçmişteki numaraya tıklanırsa doğrudan ekranda QR oluştur
+        li.addEventListener('click', () => {
+          showQrCode(item.tc);
+          statusBadge.textContent = "Geçmişten yüklendi!";
+          statusBadge.style.color = "#38bdf8";
+        });
+        historyList.appendChild(li);
+      });
+    }
+
+    clearHistoryBtn.addEventListener('click', () => {
+      if (confirm("Cihazdaki tüm tarama geçmişi silinsin mi?")) {
+        localStorage.removeItem('tc_history_local');
+        renderHistory();
+      }
+    });
+
+    function showQrCode(tc) {
+      detectedTc.textContent = tc;
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: tc,
+        width: 200,
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      resultBox.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function tcDogrula(tc) {
+      if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
+      const d = tc.split('').map(Number);
+      const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
+      const ciftler = d[1] + d[3] + d[5] + d[7];
+      const hane10 = ((tekler * 7) - ciftler) % 10;
+      const hane11 = d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
+      return d[9] === ((hane10 + 10) % 10) && d[10] === hane11;
+    }
 
     navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
@@ -161,7 +250,7 @@
       if (!video.videoWidth) return;
       scanBtn.disabled = true;
       statusBadge.style.color = "#fbbf24";
-      statusBadge.textContent = "Görüntü yakalandı, taranıyor...";
+      statusBadge.textContent = "Görüntü taranıyor...";
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -192,20 +281,12 @@
         const gecerliTc = adaylar.find(tcDogrula);
 
         if (gecerliTc) {
-          detectedTc.textContent = gecerliTc;
-          qrContainer.innerHTML = '';
-          new QRCode(qrContainer, {
-            text: gecerliTc,
-            width: 200,
-            height: 200,
-            correctLevel: QRCode.CorrectLevel.M
-          });
-          resultBox.style.display = 'block';
+          showQrCode(gecerliTc);
+          saveToHistory(gecerliTc); // Sadece cihaz belleğine yazılır
           statusBadge.textContent = "✓ Geçerli TC Kimlik Bulundu!";
           statusBadge.style.color = "#4ade80";
-          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else {
-          statusBadge.textContent = "Okunamadı. Kutuyu numaraya yaklaştırıp tekrar deneyin.";
+          statusBadge.textContent = "Okunamadı. Kutuyu numaraya yaklaştırıp deneyin.";
           statusBadge.style.color = "#f87171";
         }
       } catch (err) {
@@ -215,6 +296,9 @@
         scanBtn.disabled = false;
       }
     });
+
+    // Sayfa açıldığında yerel geçmişi listele
+    renderHistory();
   </script>
 </body>
 </html>
