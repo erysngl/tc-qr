@@ -3,18 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#d32f2f">
-    <title>KM Hesaplayıcı ve Kayıt Defteri</title>
+    
+    <!-- PWA & Tarayıcı Ayarları -->
+    <meta name="theme-color" content="#121417">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="KM Hesap">
+    <title>KM Hesaplama</title>
+
+    <!-- Dinamik Manifest (Ekstra dosya gerektirmeden PWA kurulumu sağlar) -->
+    <link rel="manifest" id="manifest-placeholder">
+
     <style>
         :root {
-            --primary: #d32f2f;
-            --primary-hover: #b71c1c;
-            --bg: #f4f6f8;
-            --card: #ffffff;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --border: #e5e7eb;
+            --bg: #0f1115;
+            --card-bg: #181b20;
+            --input-bg: #22262d;
+            --border: #2e3440;
+            --primary: #e53935;
+            --primary-active: #c62828;
             --success: #2e7d32;
+            --success-active: #1b5e20;
+            --text-main: #e6edf3;
+            --text-muted: #8b949e;
+            --accent-red: #ff5252;
+            --accent-blue: #448aff;
         }
 
         * {
@@ -23,101 +36,112 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg);
+            color: var(--text-main);
             margin: 0;
-            padding: 14px;
+            padding: 16px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
             min-height: 100vh;
-            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
         }
 
         .card {
-            background-color: var(--card);
-            border-radius: 14px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-            width: 100%;
-            max-width: 440px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
             padding: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
 
         .title {
             text-align: center;
             font-size: 18px;
             font-weight: 700;
-            margin: 0 0 14px 0;
+            margin: 0 0 16px 0;
+            color: #ffffff;
+            letter-spacing: 0.5px;
         }
 
         .tabs {
             display: flex;
-            background-color: #f3f4f6;
+            background-color: var(--input-bg);
             padding: 4px;
             border-radius: 10px;
             margin-bottom: 16px;
-            gap: 4px;
+            gap: 6px;
+            border: 1px solid var(--border);
         }
 
         .tab-btn {
             flex: 1;
-            padding: 9px 4px;
+            padding: 10px 6px;
             border: none;
             background: transparent;
             font-size: 13px;
             font-weight: 600;
-            color: var(--muted);
-            border-radius: 8px;
+            color: var(--text-muted);
+            border-radius: 7px;
             cursor: pointer;
+            transition: all 0.2s;
         }
 
         .tab-btn.active {
-            background-color: #ffffff;
-            color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            background-color: var(--card-bg);
+            color: var(--accent-red);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             font-size: 13px;
             font-weight: 600;
-            color: #374151;
+            color: var(--text-muted);
         }
 
         input[type="number"] {
             width: 100%;
-            padding: 11px 12px;
-            border: 1.5px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 16px;
-            background-color: #fff;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 9px;
+            font-size: 17px;
+            background-color: var(--input-bg);
+            color: #ffffff;
+            outline: none;
+            transition: border-color 0.2s;
         }
 
         input[type="number"]:focus {
-            border-color: var(--primary);
-            outline: none;
+            border-color: var(--accent-red);
         }
 
         .error {
-            color: var(--primary);
-            font-size: 12px;
-            background-color: #fef2f2;
-            padding: 8px;
-            border-radius: 6px;
-            margin-top: 8px;
+            color: #ff6b6b;
+            font-size: 13px;
+            background-color: rgba(229, 57, 53, 0.1);
+            border: 1px solid rgba(229, 57, 53, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
             text-align: center;
             display: none;
         }
 
         .results {
-            margin-top: 14px;
+            margin-top: 16px;
             border-top: 1px solid var(--border);
-            padding-top: 14px;
+            padding-top: 16px;
             display: none;
         }
 
@@ -125,50 +149,48 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #f9fafb;
+            background-color: var(--input-bg);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 14px;
+            border-radius: 9px;
+            padding: 12px 14px;
             margin-bottom: 8px;
         }
 
         .result-label {
             font-size: 13px;
             font-weight: 600;
-            color: #4b5563;
+            color: var(--text-muted);
         }
 
         .result-value {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 800;
-            color: #111827;
         }
 
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 13px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 9px;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
             transition: background-color 0.2s;
         }
 
         .btn-save {
             background-color: var(--success);
-            color: #fff;
+            color: #ffffff;
         }
 
         .btn-save:active {
-            background-color: #1b5e20;
+            background-color: var(--success-active);
         }
 
+        /* Geçmiş Kayıtlar */
         .history-section {
             margin-top: 24px;
-            border-top: 2px solid var(--border);
-            padding-top: 16px;
         }
 
         .history-header {
@@ -176,22 +198,25 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
+            padding: 0 4px;
         }
 
         .history-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            color: #374151;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn-clear-all {
             background: none;
             border: none;
-            color: var(--primary);
+            color: var(--accent-red);
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 4px 6px;
         }
 
         .history-list {
@@ -201,103 +226,105 @@
         }
 
         .history-card {
-            background: #ffffff;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 10px 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            position: relative;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
         }
 
         .history-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
-            color: var(--muted);
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px dashed #e5e7eb;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .history-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            font-size: 13px;
+            gap: 8px;
         }
 
         .history-item-label {
-            color: #6b7280;
+            color: var(--text-muted);
             font-size: 11px;
+            margin-bottom: 2px;
         }
 
         .history-item-val {
+            font-size: 15px;
             font-weight: 700;
-            color: #111;
+            color: #ffffff;
         }
 
         .btn-del {
             background: none;
             border: none;
-            color: #9ca3af;
+            color: var(--text-muted);
             font-size: 16px;
             cursor: pointer;
-            padding: 0 4px;
+            padding: 2px 6px;
             line-height: 1;
         }
 
         .btn-del:hover {
-            color: var(--primary);
+            color: var(--accent-red);
         }
 
         .empty-history {
             text-align: center;
-            font-size: 12px;
-            color: var(--muted);
-            padding: 10px 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            padding: 16px 0;
         }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="title">KM Hesaplama</div>
+<div class="container">
+    <div class="card">
+        <div class="title">KM HESAPLAMA</div>
 
-    <div class="tabs">
-        <button class="tab-btn active" id="tabNormal" onclick="setMod('normal')">Normal Vaka</button>
-        <button class="tab-btn" id="tabSevk" onclick="setMod('sevk')">Hastaneler Arası Sevk</button>
-    </div>
-
-    <div class="form-group">
-        <label for="cikisKm">Vakaya Çıkış KM</label>
-        <input type="number" inputmode="numeric" id="cikisKm" placeholder="Örn: 100" oninput="hesapla()">
-    </div>
-
-    <div class="form-group">
-        <label for="donusKm">İstasyona Dönüş KM</label>
-        <input type="number" inputmode="numeric" id="donusKm" placeholder="Örn: 201 veya 241" oninput="hesapla()">
-    </div>
-
-    <div id="hataMesaji" class="error">Dönüş KM, çıkış KM'den küçük olamaz.</div>
-
-    <div class="results" id="sonuclar">
-        <div class="result-row">
-            <span class="result-label">Olay Yeri Varış</span>
-            <span class="result-value" id="valOlayYeri">-</span>
+        <div class="tabs">
+            <button class="tab-btn active" id="tabNormal" onclick="setMod('normal')">Normal Vaka</button>
+            <button class="tab-btn" id="tabSevk" onclick="setMod('sevk')">Hastaneler Arası Sevk</button>
         </div>
 
-        <div class="result-row">
-            <span class="result-label">Hastaneye Varış</span>
-            <span class="result-value" id="valHastane">-</span>
+        <div class="form-group">
+            <label for="cikisKm">Vakaya Çıkış KM</label>
+            <input type="number" inputmode="numeric" id="cikisKm" placeholder="Örn: 100" oninput="hesapla()">
         </div>
 
-        <button type="button" class="btn btn-save" onclick="kaydet()">Vakayı Kaydet</button>
+        <div class="form-group">
+            <label for="donusKm">İstasyona Dönüş KM</label>
+            <input type="number" inputmode="numeric" id="donusKm" placeholder="Örn: 201 veya 241" oninput="hesapla()">
+        </div>
+
+        <div id="hataMesaji" class="error">Dönüş KM, çıkış KM'den küçük olamaz.</div>
+
+        <div class="results" id="sonuclar">
+            <div class="result-row">
+                <span class="result-label">Olay Yeri Varış</span>
+                <span class="result-value" id="valOlayYeri" style="color: var(--accent-red);">-</span>
+            </div>
+
+            <div class="result-row">
+                <span class="result-label">Hastaneye Varış</span>
+                <span class="result-value" id="valHastane" style="color: var(--accent-blue);">-</span>
+            </div>
+
+            <button type="button" class="btn btn-save" onclick="kaydet()">Vakayı Kaydet</button>
+        </div>
     </div>
 
-    <!-- Cihazda Saklanan Kayıtlar -->
+    <!-- Cihazda Tutulan Yerel Kayıt Defteri -->
     <div class="history-section">
         <div class="history-header">
-            <span class="history-title">Bekleyen / Geçmiş Vakalar</span>
+            <span class="history-title">Kayıtlı Vakalar</span>
             <button class="btn-clear-all" onclick="tumunuTemizle()">Tümünü Temizle</button>
         </div>
         <div class="history-list" id="gecmisListesi"></div>
@@ -377,10 +404,9 @@
         };
 
         const kayitlar = alKayitlar();
-        kayitlar.unshift(kayit); // En son vaka en üste gelir
+        kayitlar.unshift(kayit);
         localStorage.setItem('ambulans_km_kayitlari', JSON.stringify(kayitlar));
 
-        // Form alanlarını sıfırla
         document.getElementById('cikisKm').value = '';
         document.getElementById('donusKm').value = '';
         document.getElementById('sonuclar').style.display = 'none';
@@ -403,7 +429,7 @@
 
     function tumunuTemizle() {
         if (alKayitlar().length === 0) return;
-        if (confirm("Kayıtlı tüm vakaları silmek istediğinize emin misiniz?")) {
+        if (confirm("Tüm kayıtlı vakaları silmek istiyor musunuz?")) {
             localStorage.removeItem('ambulans_km_kayitlari');
             listeyiYenile();
         }
@@ -414,7 +440,7 @@
         const kayitlar = alKayitlar();
 
         if (kayitlar.length === 0) {
-            container.innerHTML = '<div class="empty-history">Henüz kayıtlı vaka yok.</div>';
+            container.innerHTML = '<div class="empty-history">Kayıtlı vaka bulunmuyor.</div>';
             return;
         }
 
@@ -422,23 +448,23 @@
             <div class="history-card">
                 <div class="history-meta">
                     <span><strong>${k.tur}</strong> (${k.saat})</span>
-                    <button class="btn-del" title="Kaydı Sil" onclick="kayitSil(${k.id})">✕</button>
+                    <button class="btn-del" title="Sil" onclick="kayitSil(${k.id})">✕</button>
                 </div>
                 <div class="history-grid">
                     <div>
-                        <div class="history-item-label">Çıkış KM:</div>
+                        <div class="history-item-label">Çıkış KM</div>
                         <div class="history-item-val">${k.cikis}</div>
                     </div>
                     <div>
-                        <div class="history-item-label">Olay Yeri Varış:</div>
-                        <div class="history-item-val" style="color: #d32f2f;">${k.olayYeri}</div>
+                        <div class="history-item-label">Olay Yeri Varış</div>
+                        <div class="history-item-val" style="color: var(--accent-red);">${k.olayYeri}</div>
                     </div>
                     <div>
-                        <div class="history-item-label">Hastaneye Varış:</div>
-                        <div class="history-item-val" style="color: #1976d2;">${k.hastane}</div>
+                        <div class="history-item-label">Hastaneye Varış</div>
+                        <div class="history-item-val" style="color: var(--accent-blue);">${k.hastane}</div>
                     </div>
                     <div>
-                        <div class="history-item-label">İstasyon Dönüş:</div>
+                        <div class="history-item-label">İstasyon Dönüş</div>
                         <div class="history-item-val">${k.donus}</div>
                     </div>
                 </div>
@@ -446,14 +472,34 @@
         `).join('');
     }
 
-    // Sayfa açıldığında kayıtları getir
     window.addEventListener('DOMContentLoaded', listeyiYenile);
 
-    // İnternetsiz çalışma için Service Worker
+    /* --- PWA: Dinamik Manifest ve Service Worker --- */
+    const svgIcon = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <rect width="512" height="512" rx="110" fill="#181b20"/>
+            <rect x="216" y="106" width="80" height="300" rx="20" fill="#e53935"/>
+            <rect x="106" y="216" width="300" height="80" rx="20" fill="#e53935"/>
+        </svg>
+    `);
+
+    const manifestData = {
+        name: "KM Hesaplayıcı",
+        short_name: "KM Hesap",
+        start_url: window.location.href,
+        display: "standalone",
+        background_color: "#0f1115",
+        theme_color: "#121417",
+        icons: [{ src: svgIcon, sizes: "512x512", type: "image/svg+xml" }]
+    };
+
+    const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: "application/json" });
+    document.getElementById("manifest-placeholder").setAttribute("href", URL.createObjectURL(manifestBlob));
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE_NAME = 'km-hesaplayici-v2';
+                const CACHE_NAME = 'km-app-v3';
                 self.addEventListener('install', (e) => {
                     e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll([self.location.href])));
                     self.skipWaiting();
