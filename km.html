@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#d32f2f">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>KM Hesaplayıcı</title>
+    <title>KM Hesaplayıcı ve Kayıt Defteri</title>
     <style>
         :root {
             --primary: #d32f2f;
+            --primary-hover: #b71c1c;
             --bg: #f4f6f8;
             --card: #ffffff;
             --text: #1f2937;
             --muted: #6b7280;
             --border: #e5e7eb;
+            --success: #2e7d32;
         }
 
         * {
@@ -26,29 +26,28 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             margin: 0;
-            padding: 16px;
+            padding: 14px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             color: var(--text);
         }
 
         .card {
             background-color: var(--card);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
             width: 100%;
-            max-width: 420px;
-            padding: 24px;
+            max-width: 440px;
+            padding: 20px;
         }
 
         .title {
             text-align: center;
             font-size: 18px;
             font-weight: 700;
-            color: var(--text);
-            margin: 0 0 16px 0;
+            margin: 0 0 14px 0;
         }
 
         .tabs {
@@ -56,13 +55,13 @@
             background-color: #f3f4f6;
             padding: 4px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             gap: 4px;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 10px 6px;
+            padding: 9px 4px;
             border: none;
             background: transparent;
             font-size: 13px;
@@ -70,22 +69,21 @@
             color: var(--muted);
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
         }
 
         .tab-btn.active {
             background-color: #ffffff;
             color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
             font-size: 13px;
             font-weight: 600;
             color: #374151;
@@ -93,12 +91,11 @@
 
         input[type="number"] {
             width: 100%;
-            padding: 12px 14px;
+            padding: 11px 12px;
             border: 1.5px solid #d1d5db;
             border-radius: 8px;
-            font-size: 17px;
+            font-size: 16px;
             background-color: #fff;
-            color: #111;
         }
 
         input[type="number"]:focus {
@@ -108,19 +105,19 @@
 
         .error {
             color: var(--primary);
-            font-size: 13px;
+            font-size: 12px;
             background-color: #fef2f2;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 8px;
             text-align: center;
             display: none;
         }
 
         .results {
-            margin-top: 20px;
+            margin-top: 14px;
             border-top: 1px solid var(--border);
-            padding-top: 16px;
+            padding-top: 14px;
             display: none;
         }
 
@@ -130,55 +127,134 @@
             align-items: center;
             background-color: #f9fafb;
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
         }
 
         .result-label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #4b5563;
         }
 
-        .result-action {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         .result-value {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             color: #111827;
         }
 
-        .copy-btn {
-            background-color: #e5e7eb;
+        .btn {
+            width: 100%;
+            padding: 12px;
             border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 12px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            margin-top: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-save {
+            background-color: var(--success);
+            color: #fff;
+        }
+
+        .btn-save:active {
+            background-color: #1b5e20;
+        }
+
+        .history-section {
+            margin-top: 24px;
+            border-top: 2px solid var(--border);
+            padding-top: 16px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .history-title {
+            font-size: 15px;
+            font-weight: 700;
             color: #374151;
         }
 
-        .copy-btn:active {
-            background-color: var(--primary);
-            color: #ffffff;
+        .btn-clear-all {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
         }
 
-        .summary-badge {
-            display: block;
-            text-align: center;
-            margin-top: 12px;
-            font-size: 13px;
-            font-weight: 500;
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-card {
+            background: #ffffff;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
             color: var(--muted);
-            background: #f3f4f6;
-            padding: 8px;
-            border-radius: 6px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .history-item-label {
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .history-item-val {
+            font-weight: 700;
+            color: #111;
+        }
+
+        .btn-del {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+        }
+
+        .btn-del:hover {
+            color: var(--primary);
+        }
+
+        .empty-history {
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+            padding: 10px 0;
         }
     </style>
 </head>
@@ -207,26 +283,30 @@
     <div class="results" id="sonuclar">
         <div class="result-row">
             <span class="result-label">Olay Yeri Varış</span>
-            <div class="result-action">
-                <span class="result-value" id="valOlayYeri">-</span>
-                <button class="copy-btn" onclick="kopyala('valOlayYeri', this)">Kopyala</button>
-            </div>
+            <span class="result-value" id="valOlayYeri">-</span>
         </div>
 
         <div class="result-row">
             <span class="result-label">Hastaneye Varış</span>
-            <div class="result-action">
-                <span class="result-value" id="valHastane">-</span>
-                <button class="copy-btn" onclick="kopyala('valHastane', this)">Kopyala</button>
-            </div>
+            <span class="result-value" id="valHastane">-</span>
         </div>
 
-        <div class="summary-badge" id="valToplamYol">Toplam Yol: - KM</div>
+        <button type="button" class="btn btn-save" onclick="kaydet()">Vakayı Kaydet</button>
+    </div>
+
+    <!-- Cihazda Saklanan Kayıtlar -->
+    <div class="history-section">
+        <div class="history-header">
+            <span class="history-title">Bekleyen / Geçmiş Vakalar</span>
+            <button class="btn-clear-all" onclick="tumunuTemizle()">Tümünü Temizle</button>
+        </div>
+        <div class="history-list" id="gecmisListesi"></div>
     </div>
 </div>
 
 <script>
     let aktifMod = 'normal';
+    let sonHesaplama = null;
 
     function setMod(mod) {
         aktifMod = mod;
@@ -245,12 +325,14 @@
         if (isNaN(cikis) || isNaN(donus)) {
             sonuclar.style.display = 'none';
             hata.style.display = 'none';
+            sonHesaplama = null;
             return;
         }
 
         if (donus < cikis) {
             hata.style.display = 'block';
             sonuclar.style.display = 'none';
+            sonHesaplama = null;
             return;
         }
 
@@ -262,57 +344,123 @@
         let hastane = 0;
 
         if (aktifMod === 'normal') {
-            // Normal Vaka: Yarı yolda olay yeri varış, dönüşten 1 km önce hastaneye varış
             olayYeri = Math.floor(cikis + (toplamYol / 2));
             hastane = donus - 1;
         } else {
-            // Sevk Vakası: Çıkıştan 1 km sonra olay yeri (sevk eden hastane)
             olayYeri = cikis + 1;
-            // Sevk edilen hastaneye gidiş-dönüşün tam ortası
             const sevkKalanYol = donus - olayYeri;
             hastane = Math.floor(olayYeri + (sevkKalanYol / 2));
         }
 
         document.getElementById('valOlayYeri').innerText = olayYeri;
         document.getElementById('valHastane').innerText = hastane;
-        document.getElementById('valToplamYol').innerText = "Toplam Kat Edilen: " + toplamYol + " KM";
+
+        sonHesaplama = {
+            cikis: cikis,
+            olayYeri: olayYeri,
+            hastane: hastane,
+            donus: donus,
+            tur: aktifMod === 'normal' ? 'Normal Vaka' : 'Sevk Vakası'
+        };
     }
 
-    function kopyala(elementId, btn) {
-        const val = document.getElementById(elementId).innerText;
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(val);
-        } else {
-            const temp = document.createElement('textarea');
-            temp.value = val;
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
+    function kaydet() {
+        if (!sonHesaplama) return;
+
+        const simdi = new Date();
+        const saat = simdi.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+        const kayit = {
+            id: Date.now(),
+            saat: saat,
+            ...sonHesaplama
+        };
+
+        const kayitlar = alKayitlar();
+        kayitlar.unshift(kayit); // En son vaka en üste gelir
+        localStorage.setItem('ambulans_km_kayitlari', JSON.stringify(kayitlar));
+
+        // Form alanlarını sıfırla
+        document.getElementById('cikisKm').value = '';
+        document.getElementById('donusKm').value = '';
+        document.getElementById('sonuclar').style.display = 'none';
+        sonHesaplama = null;
+
+        listeyiYenile();
+    }
+
+    function alKayitlar() {
+        const ham = localStorage.getItem('ambulans_km_kayitlari');
+        return ham ? JSON.parse(ham) : [];
+    }
+
+    function kayitSil(id) {
+        let kayitlar = alKayitlar();
+        kayitlar = kayitlar.filter(k => k.id !== id);
+        localStorage.setItem('ambulans_km_kayitlari', JSON.stringify(kayitlar));
+        listeyiYenile();
+    }
+
+    function tumunuTemizle() {
+        if (alKayitlar().length === 0) return;
+        if (confirm("Kayıtlı tüm vakaları silmek istediğinize emin misiniz?")) {
+            localStorage.removeItem('ambulans_km_kayitlari');
+            listeyiYenile();
         }
-        const eskiYazi = btn.innerText;
-        btn.innerText = "Kopyalandı";
-        setTimeout(() => { btn.innerText = eskiYazi; }, 1000);
     }
 
-    // Çevrimdışı (Offline) Çalışma Desteği - Service Worker
+    function listeyiYenile() {
+        const container = document.getElementById('gecmisListesi');
+        const kayitlar = alKayitlar();
+
+        if (kayitlar.length === 0) {
+            container.innerHTML = '<div class="empty-history">Henüz kayıtlı vaka yok.</div>';
+            return;
+        }
+
+        container.innerHTML = kayitlar.map(k => `
+            <div class="history-card">
+                <div class="history-meta">
+                    <span><strong>${k.tur}</strong> (${k.saat})</span>
+                    <button class="btn-del" title="Kaydı Sil" onclick="kayitSil(${k.id})">✕</button>
+                </div>
+                <div class="history-grid">
+                    <div>
+                        <div class="history-item-label">Çıkış KM:</div>
+                        <div class="history-item-val">${k.cikis}</div>
+                    </div>
+                    <div>
+                        <div class="history-item-label">Olay Yeri Varış:</div>
+                        <div class="history-item-val" style="color: #d32f2f;">${k.olayYeri}</div>
+                    </div>
+                    <div>
+                        <div class="history-item-label">Hastaneye Varış:</div>
+                        <div class="history-item-val" style="color: #1976d2;">${k.hastane}</div>
+                    </div>
+                    <div>
+                        <div class="history-item-label">İstasyon Dönüş:</div>
+                        <div class="history-item-val">${k.donus}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Sayfa açıldığında kayıtları getir
+    window.addEventListener('DOMContentLoaded', listeyiYenile);
+
+    // İnternetsiz çalışma için Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const swCode = `
-                const CACHE_NAME = 'km-hesaplayici-v1';
+                const CACHE_NAME = 'km-hesaplayici-v2';
                 self.addEventListener('install', (e) => {
-                    e.waitUntil(
-                        caches.open(CACHE_NAME).then((cache) => cache.addAll([self.location.href]))
-                    );
+                    e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll([self.location.href])));
                     self.skipWaiting();
                 });
-                self.addEventListener('activate', (e) => {
-                    e.waitUntil(clients.claim());
-                });
+                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
                 self.addEventListener('fetch', (e) => {
-                    e.respondWith(
-                        caches.match(e.request).then((res) => res || fetch(e.request).catch(() => caches.match(self.location.href)))
-                    );
+                    e.respondWith(caches.match(e.request).then((res) => res || fetch(e.request).catch(() => caches.match(self.location.href))));
                 });
             `;
             const blob = new Blob([swCode], { type: 'application/javascript' });
