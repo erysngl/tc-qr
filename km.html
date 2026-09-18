@@ -2,20 +2,28 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KM Hesaplama</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#d32f2f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>KM Hesaplayıcı</title>
     <style>
         :root {
             --primary: #d32f2f;
-            --primary-dark: #b71c1c;
-            --bg: #f0f2f5;
+            --bg: #f4f6f8;
             --card: #ffffff;
-            --text: #212529;
-            --muted: #6c757d;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             margin: 0;
             padding: 16px;
@@ -23,22 +31,29 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            box-sizing: border-box;
+            color: var(--text);
         }
 
         .card {
             background-color: var(--card);
             border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             width: 100%;
-            max-width: 440px;
+            max-width: 420px;
             padding: 24px;
-            box-sizing: border-box;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 16px 0;
         }
 
         .tabs {
             display: flex;
-            background-color: #e9ecef;
+            background-color: #f3f4f6;
             padding: 4px;
             border-radius: 10px;
             margin-bottom: 20px;
@@ -47,7 +62,7 @@
 
         .tab-btn {
             flex: 1;
-            padding: 10px 8px;
+            padding: 10px 6px;
             border: none;
             background: transparent;
             font-size: 13px;
@@ -55,13 +70,13 @@
             color: var(--muted);
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s, color 0.2s;
         }
 
         .tab-btn.active {
             background-color: #ffffff;
             color: var(--primary);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
         }
 
         .form-group {
@@ -81,9 +96,9 @@
             padding: 12px 14px;
             border: 1.5px solid #d1d5db;
             border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
-            transition: border-color 0.2s;
+            font-size: 17px;
+            background-color: #fff;
+            color: #111;
         }
 
         input[type="number"]:focus {
@@ -94,17 +109,17 @@
         .error {
             color: var(--primary);
             font-size: 13px;
-            background-color: #ffebee;
+            background-color: #fef2f2;
             padding: 10px;
             border-radius: 8px;
-            margin-top: 12px;
+            margin-top: 10px;
             text-align: center;
             display: none;
         }
 
         .results {
             margin-top: 20px;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid var(--border);
             padding-top: 16px;
             display: none;
         }
@@ -113,17 +128,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 8px;
+            background-color: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
         }
 
         .result-label {
-            font-size: 13px;
-            color: #475569;
-            font-weight: 500;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
         }
 
         .result-action {
@@ -133,36 +148,36 @@
         }
 
         .result-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #0f172a;
+            font-size: 18px;
+            font-weight: 800;
+            color: #111827;
         }
 
         .copy-btn {
-            background-color: #e2e8f0;
+            background-color: #e5e7eb;
             border: none;
-            padding: 5px 9px;
+            padding: 6px 10px;
             border-radius: 6px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            color: #334155;
-            transition: all 0.2s;
+            color: #374151;
         }
 
         .copy-btn:active {
             background-color: var(--primary);
-            color: #fff;
+            color: #ffffff;
         }
 
         .summary-badge {
             display: block;
             text-align: center;
             margin-top: 12px;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
             color: var(--muted);
-            background: #f1f5f9;
-            padding: 6px;
+            background: #f3f4f6;
+            padding: 8px;
             border-radius: 6px;
         }
     </style>
@@ -170,26 +185,28 @@
 <body>
 
 <div class="card">
+    <div class="title">KM Hesaplama</div>
+
     <div class="tabs">
         <button class="tab-btn active" id="tabNormal" onclick="setMod('normal')">Normal Vaka</button>
-        <button class="tab-btn" id="tabSevk" onclick="setMod('sevk')">İlçe / Sevk Vakası</button>
+        <button class="tab-btn" id="tabSevk" onclick="setMod('sevk')">Hastaneler Arası Sevk</button>
     </div>
 
     <div class="form-group">
         <label for="cikisKm">Vakaya Çıkış KM</label>
-        <input type="number" id="cikisKm" placeholder="Örn: 100" oninput="hesapla()">
+        <input type="number" inputmode="numeric" id="cikisKm" placeholder="Örn: 100" oninput="hesapla()">
     </div>
 
     <div class="form-group">
         <label for="donusKm">İstasyona Dönüş KM</label>
-        <input type="number" id="donusKm" placeholder="Örn: 241" oninput="hesapla()">
+        <input type="number" inputmode="numeric" id="donusKm" placeholder="Örn: 201 veya 241" oninput="hesapla()">
     </div>
 
     <div id="hataMesaji" class="error">Dönüş KM, çıkış KM'den küçük olamaz.</div>
 
     <div class="results" id="sonuclar">
         <div class="result-row">
-            <span class="result-label" id="lblOlayYeri">Olay Yeri Varış</span>
+            <span class="result-label">Olay Yeri Varış</span>
             <div class="result-action">
                 <span class="result-value" id="valOlayYeri">-</span>
                 <button class="copy-btn" onclick="kopyala('valOlayYeri', this)">Kopyala</button>
@@ -197,7 +214,7 @@
         </div>
 
         <div class="result-row">
-            <span class="result-label" id="lblHastane">Hastaneye Varış</span>
+            <span class="result-label">Hastaneye Varış</span>
             <div class="result-action">
                 <span class="result-value" id="valHastane">-</span>
                 <button class="copy-btn" onclick="kopyala('valHastane', this)">Kopyala</button>
@@ -215,15 +232,6 @@
         aktifMod = mod;
         document.getElementById('tabNormal').classList.toggle('active', mod === 'normal');
         document.getElementById('tabSevk').classList.toggle('active', mod === 'sevk');
-        
-        if (mod === 'normal') {
-            document.getElementById('lblOlayYeri').innerText = "Olay Yeri Varış";
-            document.getElementById('lblHastane').innerText = "Hastaneye Varış";
-        } else {
-            document.getElementById('lblOlayYeri').innerText = "Sevk Eden Hastane (1 km)";
-            document.getElementById('lblHastane').innerText = "Sevk Edilen Hastane";
-        }
-
         hesapla();
     }
 
@@ -254,16 +262,14 @@
         let hastane = 0;
 
         if (aktifMod === 'normal') {
-            // Normal Vaka: Yarı yolda olay yeri, dönüşten 1 km önce hastane
+            // Normal Vaka: Yarı yolda olay yeri varış, dönüşten 1 km önce hastaneye varış
             olayYeri = Math.floor(cikis + (toplamYol / 2));
             hastane = donus - 1;
         } else {
-            // Sevk Vakası: Çıkıştan 1 km sonra ilçe hastanesi
+            // Sevk Vakası: Çıkıştan 1 km sonra olay yeri (sevk eden hastane)
             olayYeri = cikis + 1;
-            
-            // İlçe hastanesinden sonraki kalan yol (gidiş-dönüş sevk)
+            // Sevk edilen hastaneye gidiş-dönüşün tam ortası
             const sevkKalanYol = donus - olayYeri;
-            // Sevk edilen hastane yarı yolda
             hastane = Math.floor(olayYeri + (sevkKalanYol / 2));
         }
 
@@ -274,12 +280,43 @@
 
     function kopyala(elementId, btn) {
         const val = document.getElementById(elementId).innerText;
-        navigator.clipboard.writeText(val).then(() => {
-            const eskiYazi = btn.innerText;
-            btn.innerText = "Kopyalandı!";
-            setTimeout(() => {
-                btn.innerText = eskiYazi;
-            }, 1000);
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(val);
+        } else {
+            const temp = document.createElement('textarea');
+            temp.value = val;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+        }
+        const eskiYazi = btn.innerText;
+        btn.innerText = "Kopyalandı";
+        setTimeout(() => { btn.innerText = eskiYazi; }, 1000);
+    }
+
+    // Çevrimdışı (Offline) Çalışma Desteği - Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            const swCode = `
+                const CACHE_NAME = 'km-hesaplayici-v1';
+                self.addEventListener('install', (e) => {
+                    e.waitUntil(
+                        caches.open(CACHE_NAME).then((cache) => cache.addAll([self.location.href]))
+                    );
+                    self.skipWaiting();
+                });
+                self.addEventListener('activate', (e) => {
+                    e.waitUntil(clients.claim());
+                });
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(
+                        caches.match(e.request).then((res) => res || fetch(e.request).catch(() => caches.match(self.location.href)))
+                    );
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
         });
     }
 </script>
