@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambulans KM Hesaplayıcı</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            color: #d32f2f;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="number"]:focus {
+            border-color: #d32f2f;
+            outline: none;
+        }
+        .results {
+            margin-top: 20px;
+            border-top: 2px dashed #eee;
+            padding-top: 15px;
+        }
+        .result-box {
+            background-color: #f9f9f9;
+            border-left: 4px solid #d32f2f;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .result-box.hospital {
+            border-left-color: #1976d2;
+        }
+        .result-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .result-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #222;
+        }
+        .error {
+            color: #d32f2f;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>KM Hesaplama</h2>
+    
+    <div class="form-group">
+        <label for="cikisKm">Vakaya Çıkış KM:</label>
+        <input type="number" id="cikisKm" placeholder="Örn: 100" oninput="hesapla()">
+    </div>
+
+    <div class="form-group">
+        <label for="donusKm">İstasyona Dönüş KM:</label>
+        <input type="number" id="donusKm" placeholder="Örn: 201" oninput="hesapla()">
+    </div>
+
+    <div id="hataMesaji" class="error">Dönüş KM, çıkış KM'den küçük olamaz.</div>
+
+    <div class="results" id="sonuclar" style="display: none;">
+        <div class="result-box">
+            <div class="result-title">Olay Yeri Varış KM</div>
+            <div class="result-value" id="olayYeriKm">-</div>
+        </div>
+
+        <div class="result-box hospital">
+            <div class="result-title">Hastaneye Varış KM</div>
+            <div class="result-value" id="hastaneKm">-</div>
+        </div>
+
+        <div class="result-box" style="border-left-color: #388e3c;">
+            <div class="result-title">Toplam Kat Edilen Yol</div>
+            <div class="result-value" id="toplamKm">-</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function hesapla() {
+        const cikis = parseFloat(document.getElementById('cikisKm').value);
+        const donus = parseFloat(document.getElementById('donusKm').value);
+        
+        const sonuclarDiv = document.getElementById('sonuclar');
+        const hataDiv = document.getElementById('hataMesaji');
+
+        if (isNaN(cikis) || isNaN(donus)) {
+            sonuclarDiv.style.display = 'none';
+            hataDiv.style.display = 'none';
+            return;
+        }
+
+        if (donus < cikis) {
+            hataDiv.style.display = 'block';
+            sonuclarDiv.style.display = 'none';
+            return;
+        }
+
+        hataDiv.style.display = 'none';
+        sonuclarDiv.style.display = 'block';
+
+        const toplamFark = donus - cikis;
+        
+        // Farkı ikiye bölüp çıkışa ekler (küsurat oluşursa tam sayıya yuvarlar)
+        const olayYeriVaris = Math.floor(cikis + (toplamFark / 2));
+        
+        // Dönüşün 1 km öncesi
+        const hastaneVaris = donus - 1;
+
+        document.getElementById('olayYeriKm').innerText = olayYeriVaris + " KM";
+        document.getElementById('hastaneKm').innerText = hastaneVaris + " KM";
+        document.getElementById('toplamKm').innerText = toplamFark + " KM";
+    }
+</script>
+
+</body>
+</html>
