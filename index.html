@@ -61,7 +61,6 @@
       letter-spacing: 1px;
     }
 
-    /* Flaş (Torch) Butonu */
     #torch-btn {
       display: none; position: absolute; top: 12px; right: 12px;
       width: 40px; height: 40px; border-radius: 50%;
@@ -173,13 +172,12 @@
     let videoTrack = null;
     let isTorchOn = false;
 
-    // 1. Tesseract Worker'ı Önceden Hazırla
+    // Tesseract'i Başlat
     async function initOCR() {
       try {
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
-          tessedit_char_whitelist: '0123456789',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE
+          tessedit_char_whitelist: '0123456789' // Sadece rakamları tanı
         });
         statusBadge.textContent = "Hazır. TC'yi kutuya hizalayın.";
         statusBadge.style.color = "#38bdf8";
@@ -189,19 +187,17 @@
     }
     initOCR();
 
-    // 2. Kamerayı Sürekli Odak ve Yüksek Hızlı Başlat
+    // Kamera Başlat
     navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
         width: { ideal: 1920 },
         height: { ideal: 1080 },
-        advanced: [{ focusMode: 'continuous' }] // Titreşimi ve hareket bulanıklığını engeller
+        advanced: [{ focusMode: 'continuous' }]
       }
     }).then(stream => { 
       video.srcObject = stream;
       videoTrack = stream.getVideoTracks()[0];
-
-      // Flaş Desteği Kontrolü
       const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
       if (capabilities.torch) {
         torchBtn.style.display = 'flex';
@@ -211,7 +207,6 @@
       statusBadge.style.color = "#f87171";
     });
 
-    // Flaş Aç/Kapat Butonu
     torchBtn.addEventListener('click', async () => {
       if (!videoTrack) return;
       isTorchOn = !isTorchOn;
@@ -224,7 +219,6 @@
       }
     });
 
-    // 3. TC Algoritması
     function tcDogrula(tc) {
       if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
       const d = tc.split('').map(Number);
@@ -235,91 +229,60 @@
       return d[9] === ((hane10 + 10) % 10) && d[10] === hane11;
     }
 
-    // 4. Adaptif Eşikleme (Gölge, Loş Işık ve Titreşimi Temizler)
-    function applyAdaptiveThreshold(ctx, width, height) {
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const d = imgData.data;
-      const grays = new Uint8Array(width * height);
-
-      // Griye çevir
-      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-        grays[p] = (d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8;
-      }
-
-      // İntegral Görüntü Matrisi
-      const integral = new Uint32Array(width * height);
-      for (let y = 0; y < height; y++) {
-        let sum = 0;
-        for (let x = 0; x < width; x++) {
-          sum += grays[y * width + x];
-          integral[y * width + x] = sum + (y > 0 ? integral[(y - 1) * width + x] : 0);
-        }
-      }
-
-      // Yerel komşuluk ortalamasına göre eşikleme (Bradley-Roth Algoritması)
-      const s = Math.floor(width / 16);
-      const t = 15; // Kontrast eşiği toleransı
-      const s2 = Math.floor(s / 2);
-
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const x1 = Math.max(0, x - s2);
-          const x2 = Math.min(width - 1, x + s2);
-          const y1 = Math.max(0, y - s2);
-          const y2 = Math.min(height - 1, y + s2);
-          const count = (x2 - x1) * (y2 - y1);
-
-          const sum = integral[y2 * width + x2] 
-                    - integral[y1 * width + x2] 
-                    - integral[y2 * width + x1] 
-                    + integral[y1 * width + x1];
-
-          const idx = (y * width + x) * 4;
-          const val = (grays[y * width + x] * count) < (sum * (100 - t) / 100) ? 0 : 255;
-          d[idx] = d[idx + 1] = d[idx + 2] = val;
-        }
-      }
-      ctx.putImageData(imgData, 0, 0);
-    }
-
-    // 5. Tarama Tetikleme
     scanBtn.addEventListener('click', async () => {
       if (!video.videoWidth || !ocrWorker) return;
       
       scanBtn.style.display = 'none';
       statusBadge.style.color = "#fbbf24";
-      statusBadge.textContent = "Netleştiriliyor & Okunuyor...";
+      statusBadge.textContent = "Okunuyor...";
 
+      // HATANIN DÜZELTİLDİĞİ YER: object-fit: cover Kırpma Matematiği
       const vWidth = video.videoWidth;
       const vHeight = video.videoHeight;
       const cWidth = camWrapper.clientWidth;
       const cHeight = camWrapper.clientHeight;
 
+      // Video ile kapsayıcının orantısını hesapla
+      const scale = Math.max(cWidth / vWidth, cHeight / vHeight);
+      
+      // Kapsayıcı dışında kalan görünmez video kısımları (offset)
+      const offsetX = ((vWidth * scale) - cWidth) / 2;
+      const offsetY = ((vHeight * scale) - cHeight) / 2;
+
+      // Ekranda görünen mavi kutunun CSS boyutları ve pozisyonu
       const boxW = cWidth * 0.82;
       const boxH = 68;
       const boxX = (cWidth - boxW) / 2;
       const boxY = (cHeight * 0.40) - (boxH / 2);
 
-      const scaleX = vWidth / cWidth;
-      const scaleY = vHeight / cHeight;
+      // Ekranda gördüğümüz kutuyu gerçek video piksellerine eşle
+      const cropX = (boxX + offsetX) / scale;
+      const cropY = (boxY + offsetY) / scale;
+      const cropW = boxW / scale;
+      const cropH = boxH / scale;
 
-      const cropX = boxX * scaleX;
-      const cropY = boxY * scaleY;
-      const cropW = boxW * scaleX;
-      const cropH = boxH * scaleY;
-
-      // Harekete bağlı piksellenmeyi önlemek için kırpılan alanı 2x büyüt
-      const targetW = Math.round(cropW * 2);
-      const targetH = Math.round(cropH * 2);
+      // Daha keskin okuma için 2 kat büyük çiz
+      const targetW = cropW * 2;
+      const targetH = cropH * 2;
       canvas.width = targetW;
       canvas.height = targetH;
+      
       const ctx = canvas.getContext('2d');
-
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
 
-      // Titreşim ve gölgeleri filtrele
-      applyAdaptiveThreshold(ctx, targetW, targetH);
+      // Daha güvenli, görseli bozmayan kontrastlı gri tonlama
+      const imgData = ctx.getImageData(0, 0, targetW, targetH);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        let gray = (d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
+        // %50 kontrast artışı
+        gray = (gray - 128) * 1.5 + 128; 
+        if(gray < 0) gray = 0;
+        if(gray > 255) gray = 255;
+        d[i] = d[i+1] = d[i+2] = gray;
+      }
+      ctx.putImageData(imgData, 0, 0);
 
       try {
         const { data: { text } } = await ocrWorker.recognize(canvas);
@@ -334,7 +297,7 @@
           statusBadge.textContent = "✓ TC Bulundu!";
           statusBadge.style.color = "#4ade80";
         } else {
-          statusBadge.textContent = digits.length >= 8 ? "Rakamlar tam oturmadı, sabit tutup tekrar basın." : "Kutuyu TC'ye ortalayın (Loşsa feneri açın).";
+          statusBadge.textContent = digits.length >= 8 ? "Tam hizalanamadı, tekrar basın." : "Kutuyu numaraya hizalayıp tekrar deneyin.";
           statusBadge.style.color = "#f87171";
         }
       } catch (err) {
