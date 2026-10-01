@@ -33,12 +33,11 @@
     .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 420px; border-radius: 20px; overflow: hidden; border: 1px solid #334155; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    /* PROFESYONEL VİZÖR TASARIMI */
     .guide-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 0 9999px rgba(15, 23, 42, 0.85); pointer-events: none; z-index: 2; clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 45%, 95% 45%, 95% 55%, 5% 55%, 5% 100%, 100% 100%, 100% 0%); }
     
     .guide-corners {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 90%; height: 45px; z-index: 3;
+      width: 90%; height: 55px; z-index: 3;
       background:
         linear-gradient(to right, #38bdf8 3px, transparent 3px) 0 0,
         linear-gradient(to bottom, #38bdf8 3px, transparent 3px) 0 0,
@@ -163,6 +162,7 @@
       isTorchOn = !isTorchOn;
       try { await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] }); } catch (e) {}
       document.getElementById('torch-btn').style.background = isTorchOn ? "rgba(255, 255, 255, 0.9)" : "rgba(15, 23, 42, 0.5)";
+      document.getElementById('torch-btn').style.color = isTorchOn ? "#000" : "#fff";
     });
 
     function tcDogrula(tc) {
@@ -173,23 +173,33 @@
       return d[9] === ((tekler * 7 - ciftler + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
     }
 
-    function applySmartGrayscale(ctx, width, height) {
+    // YÜKSEK PERFORMANSLI SERT FİLTRE (Okuma Başarısını Artıran Kısım)
+    function applyHighPerformanceFilter(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
       let minB = 255, maxB = 0, total = 0;
       
+      // Işık değerlerini tespit et
       for (let i = 0; i < d.length; i += 4) {
         let g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
         if (g < minB) minB = g; if (g > maxB) maxB = g; total += g;
       }
+      
       let isDarkMode = (total / (width * height)) < 100; 
       if (maxB - minB < 30) { minB = 0; maxB = 255; }
 
+      // Pikselleri ya SİYAH (0) ya da BEYAZ (255) yap (Tesseract bunu çok sever)
       for (let i = 0; i < d.length; i += 4) {
         let g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
         let stretched = ((g - minB) / (maxB - minB)) * 255;
-        if (isDarkMode) stretched = 255 - stretched;
-        d[i] = d[i+1] = d[i+2] = stretched;
+        
+        // Eşik değeri (140) altındakileri siyah, üstündekileri beyaz yapıyoruz
+        let val = stretched < 140 ? 0 : 255; 
+        
+        // Ekran okuması ise renkleri ters çevir
+        if (isDarkMode) val = 255 - val;
+        
+        d[i] = d[i+1] = d[i+2] = val;
       }
       ctx.putImageData(imgData, 0, 0);
     }
@@ -207,23 +217,28 @@
         const scale = Math.max(cW / vW, cH / vH);
         
         const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
-        const boxW = cW * 0.90, boxH = 45;
+        
+        // Kutu yüksekliği güvenli okuma için 55px yapıldı (Alt/üst kesilmesin diye)
+        const boxW = cW * 0.90, boxH = 55;
         const boxX = (cW - boxW) / 2, boxY = (cH * 0.40) - (boxH / 2);
 
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
         const cropW = boxW / scale, cropH = boxH / scale;
 
-        const targetW = (cropW * 2) + 40, targetH = (cropH * 2) + 40;
+        // Daha fazla beyaz alan (padding) vererek doğruluğu artırdık
+        const targetW = (cropW * 2) + 48, targetH = (cropH * 2) + 48;
         
         const canvas = document.getElementById('snapshot');
         canvas.width = targetW; canvas.height = targetH;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, targetW, targetH);
-        ctx.imageSmoothingEnabled = true; 
-        ctx.drawImage(video, cropX, cropY, cropW, cropH, 20, 20, cropW * 2, cropH * 2);
+        
+        // ÇOK ÖNEMLİ: Yumuşatma kapalı! Resim bulanıklaşmasın, keskin kalsın.
+        ctx.imageSmoothingEnabled = false; 
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 24, 24, cropW * 2, cropH * 2);
 
-        applySmartGrayscale(ctx, targetW, targetH);
+        applyHighPerformanceFilter(ctx, targetW, targetH);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
         const rawText = text.replace(/[^0-9]/g, '').trim();
@@ -246,7 +261,7 @@
       } catch (err) {}
 
       isProcessing = false; 
-      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 30); 
+      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 20); 
     }
 
     function startContinuousScan() {
