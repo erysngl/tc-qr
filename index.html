@@ -20,7 +20,7 @@
     body { 
       background: #0f172a; color: #f8fafc; padding: 75px 16px 36px; 
       display: flex; flex-direction: column; align-items: center; min-height: 100vh;
-      overscroll-behavior-y: contain; /* Yenileme kaydırmasını engeller */
+      overscroll-behavior-y: contain; 
     }
 
     #status-badge {
@@ -33,21 +33,33 @@
       transition: color 0.3s;
     }
 
+    /* PWA Yükleme */
+    #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
+
+    /* QR Sonuç Alanı */
     #result-box { 
       width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; 
       border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; 
       animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-      transform: translateZ(0); /* Donanım hızlandırma */
     }
     @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     
     #detected-tc { font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #4ade80; margin-bottom: 12px; }
     #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
+    /* Yeni Kimlik Tara Butonu (Kamera gizliyken çıkar) */
+    #restart-btn { 
+      display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px;
+      font-size: 16px; font-weight: 700; background: #2563eb; color: #fff; 
+      border: none; border-radius: 12px; cursor: pointer; 
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); z-index: 10;
+    }
+    #restart-btn:active { background: #1d4ed8; }
+
+    /* Kamera Alanı */
     .camera-wrapper { 
       position: relative; width: 100%; max-width: 400px; height: 380px; border-radius: 16px; 
       overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      transform: translateZ(0);
     }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
@@ -57,16 +69,12 @@
       box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65); pointer-events: none;
       transition: border-color 0.3s;
     }
-    .guide-box.scanning {
-      border-color: #fbbf24;
-      animation: pulseBorder 1.5s infinite;
-    }
+    .guide-box.scanning { border-color: #fbbf24; animation: pulseBorder 1.5s infinite; }
     @keyframes pulseBorder {
       0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; }
       50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 20px #fbbf24 inset; }
       100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; }
     }
-    
     .guide-hint {
       position: absolute; top: -26px; left: 0; width: 100%; text-align: center;
       font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;
@@ -80,31 +88,34 @@
       align-items: center; justify-content: center; backdrop-filter: blur(8px);
     }
 
-    #restart-btn { 
-      display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-      padding: 14px 32px; font-size: 16px; font-weight: 700; 
-      background: #2563eb; color: #fff; border: none; border-radius: 30px; 
-      cursor: pointer; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); z-index: 10;
-    }
-    #restart-btn:active { background: #1d4ed8; }
-
+    /* Geçmiş Kartı */
     .history-card {
-      width: 100%; max-width: 400px; margin-top: 24px; background: #1e293b;
+      width: 100%; max-width: 400px; margin-top: 10px; background: #1e293b;
       border: 1px solid #334155; border-radius: 16px; padding: 16px;
     }
     .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .history-header h4 { font-size: 15px; color: #cbd5e1; font-weight: 700; }
     .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
-    .history-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; cursor: pointer; }
-    .history-tc { font-weight: 700; font-size: 16px; color: #38bdf8; letter-spacing: 1px; }
-    .history-time { font-size: 12px; color: #64748b; }
-    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 16px 0; }
+    .history-list { list-style: none; display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
     
-    .signature { margin-top: 24px; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #475569; text-transform: uppercase; }
+    .history-item { 
+      background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; 
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .history-row-top { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .history-tc { font-weight: 700; font-size: 18px; color: #38bdf8; letter-spacing: 1px; }
+    .history-date { font-size: 11px; color: #64748b; text-align: right; }
+    
+    .name-btn {
+      align-self: flex-start; background: #1e293b; border: 1px solid #475569; 
+      color: #cbd5e1; font-size: 13px; font-weight: 600; padding: 6px 12px; 
+      border-radius: 6px; cursor: pointer; transition: all 0.2s;
+    }
+    .name-btn:hover { background: #334155; color: #fff; }
+    .name-btn.has-name { background: #0f766e; border-color: #0d9488; color: #ccfbf1; }
 
-    /* PWA Yükleme */
-    #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
+    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 16px 0; }
+    .signature { margin-top: 24px; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #475569; text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -117,13 +128,14 @@
     <div id="qrcode"></div>
   </div>
 
+  <button id="restart-btn">Yeni Kimlik Tara</button>
+
   <div class="camera-wrapper" id="cam-wrapper">
     <video id="camera" autoplay playsinline muted></video>
     <button id="torch-btn" title="Flaş Aç/Kapat">🔦</button>
     <div class="guide-box" id="guide-box">
       <div class="guide-hint">TC Numarasını Buraya Ortala</div>
     </div>
-    <button id="restart-btn">Yeni Kimlik Tara</button>
   </div>
 
   <canvas id="snapshot" style="display: none;"></canvas>
@@ -139,7 +151,6 @@
   <div class="signature">ERYSNGL</div>
 
   <script>
-    // Service Worker Kaydı (Çevrimdışı erişim garantisi)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js', { scope: './' }).catch(err => console.log('SW:', err));
@@ -177,15 +188,15 @@
     let videoTrack = null;
     let isTorchOn = false;
     let isScanning = false;
-    let isProcessing = false; // Arayüzün kasmasını önleyen kilit
+    let isProcessing = false;
 
-    // Tesseract Kurulumu (Offline uyumlu)
+    // Tesseract Kurulumu
     async function initOCR() {
       try {
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
           tessedit_char_whitelist: '0123456789',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE // Tek satır okuma (En hızlı mod)
+          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE
         });
         startCamera();
       } catch (err) {
@@ -193,18 +204,18 @@
       }
     }
 
-    // Gelişmiş Kamera Başlatma (Parlama ve Bulanıklık Korumalı)
+    // Kamera Kontrolleri
     function startCamera() {
+      camWrapper.style.display = 'block'; // Kamerayı görünür yap
+      resultBox.style.display = 'none';
+      restartBtn.style.display = 'none';
+
       navigator.mediaDevices.getUserMedia({
         video: { 
           facingMode: { ideal: "environment" }, 
           width: { ideal: 1920 }, 
           height: { ideal: 1080 },
-          advanced: [
-            { focusMode: 'continuous' },
-            { exposureMode: 'continuous' }, // Ekrandan okurken parlamayı keser
-            { whiteBalanceMode: 'continuous' }
-          ] 
+          advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }] 
         }
       }).then(stream => { 
         video.srcObject = stream;
@@ -219,6 +230,22 @@
         statusBadge.textContent = "Kamera izni gerekiyor."; 
         statusBadge.style.color = "#ef4444";
       });
+    }
+
+    // Kamera Kapatma Fonksiyonu (Tasarruf ve Ekran Temizliği için)
+    function stopCamera() {
+      isScanning = false;
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      videoTrack = null;
+      isTorchOn = false;
+      torchBtn.style.background = "rgba(15, 23, 42, 0.6)";
+      torchBtn.style.color = "#fff";
+      
+      camWrapper.style.display = 'none'; // Kamerayı gizle
+      restartBtn.style.display = 'block'; // Yeni tara butonunu göster
     }
 
     torchBtn.addEventListener('click', async () => {
@@ -241,7 +268,6 @@
       return d[9] === ((hane10 + 10) % 10) && d[10] === hane11;
     }
 
-    // Yüksek Hızlı Filtre (Bellek Optimizasyonlu)
     function applyRobustAdaptiveThreshold(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
@@ -263,7 +289,7 @@
 
       const s = Math.max(Math.floor(width / 16), 2);
       const s2 = Math.floor(s / 2);
-      const T = 15; // %15 koyuluk eşiği
+      const T = 15;
 
       for (let y = 0; y < height; y++) {
         let rowOffset = y * width;
@@ -285,16 +311,13 @@
       ctx.putImageData(imgData, 0, 0);
     }
 
-    // Ana Tarama Döngüsü (Asenkron - UI Donmasını Engeller)
     async function scanFrame() {
       if (!isScanning || !video.videoWidth) return;
       if (isProcessing) {
-        // Motor meşgulse bekle (Cihazı dondurmamak için)
         requestAnimationFrame(scanFrame);
         return;
       }
-
-      isProcessing = true; // Yeni işlem kilitlendi
+      isProcessing = true;
 
       try {
         const vW = video.videoWidth, vH = video.videoHeight;
@@ -314,7 +337,6 @@
         const cropW = boxW / scale;
         const cropH = boxH / scale;
 
-        // OCR Başarısı için Kenar Boşluğu (Padding) Ekleme (Kurumsal Standart)
         const padding = 20; 
         const targetW = (cropW * 2) + (padding * 2);
         const targetH = (cropH * 2) + (padding * 2);
@@ -323,12 +345,9 @@
         canvas.height = targetH;
         const ctx = canvas.getContext('2d');
         
-        // Önce bembeyaz bir zemin çiz
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, targetW, targetH);
-        
         ctx.imageSmoothingEnabled = false;
-        // Görüntüyü beyaz boşluğun içine (ortaya) çiz
         ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, cropW * 2, cropH * 2);
 
         applyRobustAdaptiveThreshold(ctx, targetW, targetH);
@@ -339,36 +358,26 @@
         const gecerliTc = adaylar.find(tcDogrula);
 
         if (gecerliTc) {
-          isScanning = false;
-          guideBox.classList.remove('scanning');
-          guideBox.style.borderColor = "#4ade80";
+          stopCamera(); // Kamerayı tamamen kapat!
           
           showQrCode(gecerliTc);
           saveToHistory(gecerliTc);
           
-          statusBadge.textContent = "✓ TC Bulundu!";
+          statusBadge.textContent = "✓ TC Bulundu ve Karekod Üretildi!";
           statusBadge.style.color = "#4ade80";
-          restartBtn.style.display = 'block';
-          
-          if ("vibrate" in navigator) navigator.vibrate(200); // Başarı titreşimi
+          if ("vibrate" in navigator) navigator.vibrate(200); 
           isProcessing = false;
           return; 
         }
       } catch (err) {}
 
-      isProcessing = false; // İşlem bitti, kilit açıldı
-      
-      // Donanımı rahatlatmak için 250ms dinlendir ve sıradaki frame'i çağır
-      if (isScanning) {
-        setTimeout(() => requestAnimationFrame(scanFrame), 250);
-      }
+      isProcessing = false; 
+      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 250);
     }
 
     function startContinuousScan() {
       isScanning = true;
       isProcessing = false;
-      resultBox.style.display = 'none';
-      restartBtn.style.display = 'none';
       guideBox.classList.add('scanning');
       guideBox.style.borderColor = "#fbbf24";
       statusBadge.textContent = "Otomatik Aranıyor... (Hizalayın)";
@@ -378,7 +387,7 @@
 
     restartBtn.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      startContinuousScan();
+      startCamera();
     });
 
     function showQrCode(tc) {
@@ -389,19 +398,52 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // --- GEÇMİŞ VE İSİM DÜZENLEME MANTIĞI ---
     function getHistory() {
       try { return JSON.parse(localStorage.getItem('tc_history_local') || '[]'); } catch { return []; }
     }
 
     function saveToHistory(tc) {
-      let list = getHistory().filter(item => item.tc !== tc);
+      let list = getHistory();
+      let existingItem = list.find(item => item.tc === tc);
+      let preservedName = existingItem ? existingItem.name : ""; // İsim varsa koru
+      
+      list = list.filter(item => item.tc !== tc);
+      
       const now = new Date();
+      const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      list.unshift({ tc: tc, time: timeStr, timestamp: Date.now() });
+      
+      list.unshift({ tc: tc, date: dateStr, time: timeStr, name: preservedName, timestamp: Date.now() });
       if (list.length > 50) list = list.slice(0, 50);
+      
       localStorage.setItem('tc_history_local', JSON.stringify(list));
       renderHistory();
     }
+
+    // Kullanıcı isme tıkladığında
+    window.editName = function(tc) {
+      let list = getHistory();
+      let index = list.findIndex(item => item.tc === tc);
+      if (index > -1) {
+        let currentName = list[index].name || "";
+        let newName = prompt(`TC: ${tc}\n\nLütfen İsim ve Soyisim giriniz:`, currentName);
+        
+        if (newName !== null) { // İptale basılmadıysa
+          list[index].name = newName.trim();
+          localStorage.setItem('tc_history_local', JSON.stringify(list));
+          renderHistory();
+        }
+      }
+    };
+
+    // Geçmişten TC seçme (Tıklanınca QR çıkar, kamera kapanır)
+    window.loadFromHistory = function(tc) {
+      stopCamera();
+      showQrCode(tc);
+      statusBadge.textContent = "Geçmişten Yüklendi!";
+      statusBadge.style.color = "#38bdf8";
+    };
 
     function renderHistory() {
       const list = getHistory();
@@ -413,22 +455,30 @@
       list.forEach(item => {
         const li = document.createElement('li');
         li.className = 'history-item';
-        li.innerHTML = `<span class="history-tc">${item.tc}</span><span class="history-time">${item.time}</span>`;
-        li.addEventListener('click', () => {
-          showQrCode(item.tc);
-          isScanning = false;
-          guideBox.classList.remove('scanning');
-          guideBox.style.borderColor = "#38bdf8";
-          restartBtn.style.display = 'block';
-          statusBadge.textContent = "Geçmişten Yüklendi!";
-          statusBadge.style.color = "#38bdf8";
-        });
+        
+        // Tarih ve saat bilgisini birleştir
+        const dateTimeStr = `${item.date} - ${item.time}`;
+        
+        // İsim eklenmişse yeşil buton, eklenmemişse gri '+ İsim Ekle' yazısı
+        const nameBtnClass = item.name ? "name-btn has-name" : "name-btn";
+        const nameBtnText = item.name ? item.name : "+ İsim Ekle";
+
+        li.innerHTML = `
+          <div class="history-row-top" onclick="loadFromHistory('${item.tc}')">
+            <span class="history-tc">${item.tc}</span>
+            <span class="history-date">${dateTimeStr}</span>
+          </div>
+          <button class="${nameBtnClass}" onclick="editName('${item.tc}')">${nameBtnText}</button>
+        `;
         historyList.appendChild(li);
       });
     }
 
     document.getElementById('clear-history-btn').addEventListener('click', () => {
-      if (confirm("Geçmiş silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); }
+      if (confirm("Tüm TC, isim ve tarih geçmişi cihazınızdan silinsin mi?")) { 
+        localStorage.removeItem('tc_history_local'); 
+        renderHistory(); 
+      }
     });
 
     renderHistory();
