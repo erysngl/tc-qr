@@ -1,6 +1,6 @@
-const CACHE_NAME = 'tcqr-offline-v4';
+const CACHE_NAME = 'tcqr-offline-pro-v1';
 
-// Uygulamanın ve OCR motorunun offline çalışması için gereken tüm dosyalar
+// Uygulamanın internetsiz çalışması için gereken temel dosyalar
 const OFFLINE_ASSETS = [
   './',
   './index.html',
@@ -12,7 +12,6 @@ const OFFLINE_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Temel dosyaları önceden indirip sakla
       return cache.addAll(OFFLINE_ASSETS);
     })
   );
@@ -30,15 +29,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Dinamik Önbellekleme: Tesseract'ın indirdiği dil paketi ve WASM çekirdeğini otomatik yakala ve kaydet
+// Dinamik Önbellekleme: Tesseract'ın sonradan indirdiği dil paketi ve WASM çekirdeğini yakala ve kaydet
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        return cachedResponse; // Çevrimdışıysa hemen önbellekten ver
+        return cachedResponse; // Çevrimdışıysa hemen cihazın önbelleğinden ver
       }
       return fetch(event.request).then((networkResponse) => {
-        // İndirilen her yeni kütüphane dosyasını (dil paketi, worker vb.) offline için sakla
+        // İndirilen her yeni kütüphane dosyasını (dil paketi vb.) offline için sakla
         if (
           event.request.method === 'GET' &&
           (networkResponse.status === 200 || networkResponse.type === 'opaque')
