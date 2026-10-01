@@ -8,7 +8,6 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Cpath fill='%2338bdf8' d='M102 102h46v46h-46zm262 0h46v46h-46zm-262 262h46v46h-46z'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E">
 
@@ -28,22 +27,29 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); z-index: 1000;
     }
 
-    #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
+    #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; }
 
-    #result-box { width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    #result-box { width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; animation: popIn 0.4s forwards; }
     @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     #detected-tc { font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #4ade80; margin-bottom: 12px; }
     #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-    #restart-btn { display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px; font-size: 16px; font-weight: 700; background: #2563eb; color: #fff; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); z-index: 10; }
+    #restart-btn { display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px; font-size: 16px; font-weight: 700; background: #2563eb; color: #fff; border: none; border-radius: 12px; cursor: pointer; z-index: 10; }
     
     .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 380px; border-radius: 16px; overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    .guide-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 70px; border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65); pointer-events: none; transition: border-color 0.3s; }
+    .guide-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 80px; border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65); pointer-events: none; transition: border-color 0.3s; }
     .guide-box.scanning { border-color: #fbbf24; animation: pulseBorder 1.5s infinite; }
     @keyframes pulseBorder { 0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; } 50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 20px #fbbf24 inset; } 100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; } }
     .guide-hint { position: absolute; top: -38px; left: 0; width: 100%; text-align: center; font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 4px; }
+
+    /* CANLI OKUMA EKRANI (Teşhis için) */
+    #live-debug {
+      position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.7);
+      color: #fff; font-family: monospace; font-size: 12px; padding: 8px;
+      text-align: center; min-height: 32px; word-wrap: break-word; z-index: 50;
+    }
 
     #torch-btn { display: none; position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); border: 1px solid #475569; color: #fff; font-size: 20px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
 
@@ -59,7 +65,6 @@
     .name-btn { align-self: flex-start; background: #1e293b; border: 1px solid #475569; color: #cbd5e1; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
     .name-btn.has-name { background: #0f766e; border-color: #0d9488; color: #ccfbf1; }
     .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 16px 0; }
-    .signature { margin-top: 24px; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #475569; text-transform: uppercase; }
   </style>
 </head>
 <body>
@@ -78,8 +83,9 @@
     <video id="camera" autoplay playsinline muted></video>
     <button id="torch-btn" title="Flaş Aç/Kapat">🔦</button>
     <div class="guide-box" id="guide-box">
-      <div class="guide-hint">TELEFONU UZAK TUTUN<br>Sistem Otomatik Yakınlaştırır</div>
+      <div class="guide-hint">15-20 CM UZAKTAN TUTUN</div>
     </div>
+    <div id="live-debug">Okunan Veri: Bekleniyor...</div>
   </div>
 
   <canvas id="snapshot" style="display: none;"></canvas>
@@ -92,182 +98,172 @@
     <ul id="history-list" class="history-list"></ul>
   </div>
 
-  <div class="signature">ERYSNGL</div>
-
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(()=>{}); });
     }
 
-    const video = document.getElementById('camera');
-    const camWrapper = document.getElementById('cam-wrapper');
-    const canvas = document.getElementById('snapshot');
-    const restartBtn = document.getElementById('restart-btn');
-    const torchBtn = document.getElementById('torch-btn');
-    const statusBadge = document.getElementById('status-badge');
-    const resultBox = document.getElementById('result-box');
-    const detectedTc = document.getElementById('detected-tc');
-    const qrContainer = document.getElementById('qrcode');
-    const historyList = document.getElementById('history-list');
-    const guideBox = document.getElementById('guide-box');
-
     let ocrWorker = null, videoTrack = null, isTorchOn = false, isScanning = false, isProcessing = false;
 
+    // Tesseract Kurulumu (Artık AUTO modunda, tuş takımlarını ayrıştırır)
     async function initOCR() {
       try {
         ocrWorker = await Tesseract.createWorker('eng');
-        await ocrWorker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE });
+        await ocrWorker.setParameters({
+          tessedit_char_whitelist: '0123456789',
+          tessedit_pageseg_mode: Tesseract.PSM.AUTO // Tuş takımı karmaşasını aşmak için AUTO modu!
+        });
         startCamera();
-      } catch (err) { statusBadge.textContent = "Hata: Motor Başlatılamadı."; }
+      } catch (err) {}
     }
 
     function startCamera() {
-      camWrapper.style.display = 'block'; resultBox.style.display = 'none'; restartBtn.style.display = 'none';
+      document.getElementById('cam-wrapper').style.display = 'block';
+      document.getElementById('result-box').style.display = 'none';
+      document.getElementById('restart-btn').style.display = 'none';
+      
       navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }] }
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: 'continuous' }] }
       }).then(async stream => { 
-        video.srcObject = stream; videoTrack = stream.getVideoTracks()[0];
+        const video = document.getElementById('camera');
+        video.srcObject = stream; 
+        videoTrack = stream.getVideoTracks()[0];
+        
         setTimeout(async () => {
-          const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
-          if (capabilities.torch) torchBtn.style.display = 'flex';
-          if (capabilities.zoom) {
-            const zoomVal = Math.min(Math.max(capabilities.zoom.min, 2.0), capabilities.zoom.max);
-            try { await videoTrack.applyConstraints({ advanced: [{ zoom: zoomVal }] }); } catch(e){}
+          const cap = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
+          if (cap.torch) document.getElementById('torch-btn').style.display = 'flex';
+          if (cap.zoom) {
+            try { await videoTrack.applyConstraints({ advanced: [{ zoom: Math.min(Math.max(cap.zoom.min, 2.0), cap.zoom.max) }] }); } catch(e){}
           }
         }, 500);
         video.addEventListener('loadeddata', () => { startContinuousScan(); });
-      }).catch(() => { statusBadge.textContent = "Kamera izni gerekiyor."; statusBadge.style.color = "#ef4444"; });
+      }).catch(() => { document.getElementById('status-badge').textContent = "Kamera izni gerekiyor."; });
     }
 
     function stopCamera() {
       isScanning = false;
+      const video = document.getElementById('camera');
       if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; }
-      videoTrack = null; isTorchOn = false; torchBtn.style.background = "rgba(15, 23, 42, 0.6)"; torchBtn.style.color = "#fff";
-      camWrapper.style.display = 'none'; restartBtn.style.display = 'block';
+      videoTrack = null; isTorchOn = false;
+      document.getElementById('cam-wrapper').style.display = 'none';
+      document.getElementById('restart-btn').style.display = 'block';
     }
 
-    torchBtn.addEventListener('click', async () => {
+    document.getElementById('torch-btn').addEventListener('click', async () => {
       if (!videoTrack) return;
       isTorchOn = !isTorchOn;
       try {
         await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
-        torchBtn.style.background = isTorchOn ? "#fbbf24" : "rgba(15, 23, 42, 0.6)";
-        torchBtn.style.color = isTorchOn ? "#000" : "#fff";
+        document.getElementById('torch-btn').style.background = isTorchOn ? "#fbbf24" : "rgba(15, 23, 42, 0.6)";
+        document.getElementById('torch-btn').style.color = isTorchOn ? "#000" : "#fff";
       } catch (e) {}
     });
 
+    // Doğrulama Algoritması (Birebir Resmi Algoritma)
     function tcDogrula(tc) {
       if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
       const d = tc.split('').map(Number);
       const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
       const ciftler = d[1] + d[3] + d[5] + d[7];
       const hane10 = ((tekler * 7) - ciftler) % 10;
-      return d[9] === ((hane10 + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
+      const hane10Safe = (hane10 + 10) % 10; // Negatif çıkma ihtimaline karşı %100 güvenli
+      const hane11 = d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
+      return d[9] === hane10Safe && d[10] === hane11;
     }
 
-    // YENİ: Akıllı Ekran Algılama (Dark Mode Inversion)
-    function applySmartAdaptiveThreshold(ctx, width, height) {
+    // YENİ FİLTRE: OLED Ekranları Bozmayan Yumuşak Filtre
+    function applySoftFilter(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
-      const grays = new Uint8Array(width * height);
       let totalBrightness = 0;
       
-      // Griye çevir ve genel parlaklığı ölç
-      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-        const g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
-        grays[p] = g;
-        totalBrightness += g;
+      for (let i = 0; i < d.length; i += 4) {
+        let gray = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
+        totalBrightness += gray;
+        d[i] = d[i+1] = d[i+2] = gray; 
       }
       
-      const avgBrightness = totalBrightness / (width * height);
-      // Eğer ortalama parlaklık çok düşükse (örneğin akıllı saat ekranı veya dark mode ise)
-      const isDarkMode = avgBrightness < 100; 
-
-      const intImg = new Uint32Array(width * height);
-      for (let y = 0; y < height; y++) {
-        let sum = 0, rowOffset = y * width;
-        for (let x = 0; x < width; x++) {
-          sum += grays[rowOffset + x];
-          intImg[rowOffset + x] = sum + (y > 0 ? intImg[rowOffset - width + x] : 0);
+      const avg = totalBrightness / (width * height);
+      
+      // Eğer ekran çok koyuysa (Karanlık Mod, Akıllı Saat) renkleri tersine çevir
+      if (avg < 110) {
+        for (let i = 0; i < d.length; i += 4) {
+          d[i] = 255 - d[i];
+          d[i+1] = 255 - d[i+1];
+          d[i+2] = 255 - d[i+2];
         }
       }
       
-      const s = Math.max(Math.floor(width / 16), 2);
-      const s2 = Math.floor(s / 2);
-      const T = 15;
-      
-      for (let y = 0; y < height; y++) {
-        let rowOffset = y * width;
-        let y1 = Math.max(0, y - s2) * width, y2 = Math.min(height - 1, y + s2) * width;
-        for (let x = 0; x < width; x++) {
-          let x1 = Math.max(0, x - s2), x2 = Math.min(width - 1, x + s2);
-          let count = (x2 - x1) * (Math.min(height - 1, y + s2) - Math.max(0, y - s2));
-          let sum = intImg[y2 + x2] - intImg[y1 + x2] - intImg[y2 + x1] + intImg[y1 + x1];
-          
-          let isDarkPixel = (grays[rowOffset + x] * count) < (sum * (100 - T) / 100);
-          
-          let val;
-          if (isDarkMode) {
-            // Ekranda beyaz yazıyı siyah, siyah arkaplanı beyaz yap (Tesseract için)
-            val = isDarkPixel ? 255 : 0;
-          } else {
-            // Normal kağıtta koyuyu siyah, açığı beyaz yap
-            val = isDarkPixel ? 0 : 255;
-          }
-          
-          let idx = (rowOffset + x) << 2;
-          d[idx] = d[idx+1] = d[idx+2] = val;
-        }
+      // Sadece hafif kontrast ekle, pikselleri sertleştirme
+      for (let i = 0; i < d.length; i += 4) {
+        let val = (d[i] - 128) * 1.5 + 128;
+        val = Math.max(0, Math.min(255, val));
+        d[i] = d[i+1] = d[i+2] = val;
       }
       ctx.putImageData(imgData, 0, 0);
     }
 
     async function scanFrame() {
-      if (!isScanning || !video.videoWidth) return;
-      if (isProcessing) { requestAnimationFrame(scanFrame); return; }
+      if (!isScanning) return;
+      const video = document.getElementById('camera');
+      if (isProcessing || !video.videoWidth) { requestAnimationFrame(scanFrame); return; }
       isProcessing = true;
 
       try {
         const vW = video.videoWidth, vH = video.videoHeight;
+        const camWrapper = document.getElementById('cam-wrapper');
         const cW = camWrapper.clientWidth, cH = camWrapper.clientHeight;
         const scale = Math.max(cW / vW, cH / vH);
         
         const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
-        const boxW = cW * 0.85, boxH = 70;
+        const boxW = cW * 0.85, boxH = 80;
         const boxX = (cW - boxW) / 2, boxY = (cH * 0.40) - (boxH / 2);
 
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
         const cropW = boxW / scale, cropH = boxH / scale;
 
-        const upscaleFactor = 2.5; const padding = 24; 
-        const targetW = (cropW * upscaleFactor) + (padding * 2);
-        const targetH = (cropH * upscaleFactor) + (padding * 2);
-        
+        const canvas = document.getElementById('snapshot');
+        const targetW = cropW * 2, targetH = cropH * 2;
         canvas.width = targetW; canvas.height = targetH;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, targetW, targetH);
         ctx.imageSmoothingEnabled = false; 
-        ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, cropW * upscaleFactor, cropH * upscaleFactor);
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
 
-        applySmartAdaptiveThreshold(ctx, targetW, targetH);
+        applySoftFilter(ctx, targetW, targetH);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
-        const digits = text.replace(/[^0-9]/g, '');
-        const adaylar = digits.match(/[1-9][0-9]{10}/g) || [];
-        const gecerliTc = adaylar.find(tcDogrula);
+        
+        // CANLI DEBUG: Ekrana gördüğünü yazdır!
+        const cleanedText = text.replace(/[^0-9\s]/g, '').trim();
+        document.getElementById('live-debug').textContent = "Kamera Okuyor: " + (cleanedText || "Bekleniyor...");
 
-        if (gecerliTc) {
+        const digits = text.replace(/[^0-9]/g, '');
+        
+        // 11 Haneli herhangi bir sayı dizisi bul
+        let adayTc = null;
+        for (let i = 0; i <= digits.length - 11; i++) {
+          let dilim = digits.substring(i, i + 11);
+          if (tcDogrula(dilim)) {
+            adayTc = dilim;
+            break;
+          } else {
+             // Sahte/Geçersiz uyarısı yap
+             if(dilim[0] !== '0') {
+                 document.getElementById('status-badge').textContent = `Geçersiz/Hatalı: ${dilim}`;
+                 document.getElementById('status-badge').style.color = "#fbbf24";
+             }
+          }
+        }
+
+        if (adayTc) {
           stopCamera();
-          showQrCode(gecerliTc); saveToHistory(gecerliTc);
-          statusBadge.textContent = "✓ TC Bulundu ve Karekod Üretildi!";
-          statusBadge.style.color = "#4ade80";
+          showQrCode(adayTc); saveToHistory(adayTc);
+          document.getElementById('status-badge').textContent = "✓ Başarılı!";
+          document.getElementById('status-badge').style.color = "#4ade80";
           if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]); 
           isProcessing = false; return; 
-        } else if (adaylar.length > 0) {
-          // Hatalı/Sahte TC Okuma Uyarısı
-          statusBadge.textContent = `Okundu ama Hatalı TC: ${adaylar[0]}`;
-          statusBadge.style.color = "#fbbf24";
         }
       } catch (err) {}
 
@@ -277,29 +273,33 @@
 
     function startContinuousScan() {
       isScanning = true; isProcessing = false;
-      guideBox.classList.add('scanning'); guideBox.style.borderColor = "#fbbf24";
-      statusBadge.textContent = "Otomatik Aranıyor... (Uzak Tutun)";
-      statusBadge.style.color = "#fbbf24";
+      document.getElementById('guide-box').classList.add('scanning');
+      document.getElementById('status-badge').textContent = "Aranıyor... (Canlı Takip Altta)";
+      document.getElementById('status-badge').style.color = "#38bdf8";
       requestAnimationFrame(scanFrame);
     }
 
-    restartBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); startCamera(); });
+    document.getElementById('restart-btn').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); startCamera(); });
 
     function showQrCode(tc) {
-      detectedTc.textContent = tc; qrContainer.innerHTML = '';
-      new QRCode(qrContainer, { text: tc, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
-      resultBox.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('detected-tc').textContent = tc; 
+      document.getElementById('qrcode').innerHTML = '';
+      new QRCode(document.getElementById('qrcode'), { text: tc, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+      document.getElementById('result-box').style.display = 'block'; 
     }
 
+    // --- Geçmiş Sistemi ---
     function getHistory() { try { return JSON.parse(localStorage.getItem('tc_history_local') || '[]'); } catch { return []; } }
     function saveToHistory(tc) {
       let list = getHistory();
       let existingItem = list.find(item => item.tc === tc);
       let preservedName = existingItem ? existingItem.name : "";
       list = list.filter(item => item.tc !== tc);
+      
       const now = new Date();
       const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
       list.unshift({ tc: tc, date: dateStr, time: timeStr, name: preservedName, timestamp: Date.now() });
       if (list.length > 50) list = list.slice(0, 50);
       localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory();
@@ -312,12 +312,11 @@
         if (newName !== null) { list[index].name = newName.trim(); localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory(); }
       }
     };
-
-    window.loadFromHistory = function(tc) { stopCamera(); showQrCode(tc); statusBadge.textContent = "Geçmişten Yüklendi!"; statusBadge.style.color = "#38bdf8"; };
+    window.loadFromHistory = function(tc) { stopCamera(); showQrCode(tc); document.getElementById('status-badge').textContent = "Geçmişten Yüklendi!"; };
 
     function renderHistory() {
-      const list = getHistory(); historyList.innerHTML = '';
-      if (list.length === 0) { historyList.innerHTML = '<li class="empty-history">Henüz kayıtlı numara yok.</li>'; return; }
+      const list = getHistory(); const hl = document.getElementById('history-list'); hl.innerHTML = '';
+      if (list.length === 0) { hl.innerHTML = '<li class="empty-history">Kayıtlı numara yok.</li>'; return; }
       list.forEach(item => {
         const li = document.createElement('li'); li.className = 'history-item';
         const nameBtnClass = item.name ? "name-btn has-name" : "name-btn";
@@ -327,11 +326,11 @@
             <span class="history-tc">${item.tc}</span><span class="history-date">${item.date} - ${item.time}</span>
           </div>
           <button class="${nameBtnClass}" onclick="editName('${item.tc}')">${nameBtnText}</button>`;
-        historyList.appendChild(li);
+        hl.appendChild(li);
       });
     }
 
-    document.getElementById('clear-history-btn').addEventListener('click', () => { if (confirm("Geçmiş cihazdan silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); } });
+    document.getElementById('clear-history-btn').addEventListener('click', () => { if (confirm("Geçmiş silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); } });
 
     renderHistory(); initOCR();
   </script>
