@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TC Kimlik Tarayıcı (Ultra Hızlı)</title>
+  <title>TC Kimlik Tarayıcı (Hareket İzoleli)</title>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Cpath fill='%2338bdf8' d='M102 102h46v46h-46zm262 0h46v46h-46zm-262 262h46v46h-46z'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E">
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -18,14 +17,7 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { background: #0f172a; color: #f8fafc; padding: 75px 16px 36px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
 
-    #status-badge {
-      position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0);
-      width: calc(100% - 32px); max-width: 400px; padding: 12px 16px;
-      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
-      border: 1px solid #334155; border-radius: 12px;
-      font-size: 13px; font-weight: 700; text-align: center; color: #38bdf8;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); z-index: 1000;
-    }
+    #status-badge { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0); width: calc(100% - 32px); max-width: 400px; padding: 12px 16px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border: 1px solid #334155; border-radius: 12px; font-size: 13px; font-weight: 700; text-align: center; color: #38bdf8; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); z-index: 1000; }
 
     #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; }
 
@@ -39,24 +31,14 @@
     .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 420px; border-radius: 16px; overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    /* İNCE, YALNIZCA TEK SATIR (LAZER) ODAKLI KILAVUZ KUTUSU */
-    .guide-box { 
-      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); 
-      width: 90%; height: 55px; /* DİĞER YAZILARI KESMEK İÇİN İNCELTİLDİ */
-      border: 2px solid #38bdf8; border-radius: 8px; 
-      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75); 
-      pointer-events: none; transition: border-color 0.2s; 
-    }
-    .guide-box::after { /* Lazer Çizgisi Efekti */
-      content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px;
-      background: rgba(251, 191, 36, 0.4); transform: translateY(-50%);
-    }
+    .guide-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 90%; height: 55px; border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75); pointer-events: none; transition: border-color 0.2s; }
+    .guide-box::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: rgba(251, 191, 36, 0.4); transform: translateY(-50%); }
     .guide-box.scanning { border-color: #fbbf24; animation: pulseBorder 0.8s infinite; }
     @keyframes pulseBorder { 0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 8px #fbbf24 inset; } 50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 15px #fbbf24 inset; } 100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 8px #fbbf24 inset; } }
     
     .guide-hint { position: absolute; top: -30px; left: 0; width: 100%; text-align: center; font-size: 13px; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
 
-    #live-debug { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #4ade80; font-family: monospace; font-size: 14px; font-weight: bold; padding: 10px; text-align: center; min-height: 38px; word-wrap: break-word; z-index: 50; border-top: 1px solid #334155; }
+    #live-debug { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); color: #4ade80; font-family: monospace; font-size: 13px; font-weight: bold; padding: 10px; text-align: center; min-height: 38px; word-wrap: break-word; z-index: 50; border-top: 1px solid #334155; transition: color 0.2s; }
 
     #torch-btn { display: none; position: absolute; top: 12px; right: 12px; width: 50px; height: 50px; border-radius: 50%; background: rgba(15, 23, 42, 0.7); border: 2px solid #475569; color: #fff; font-size: 24px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
 
@@ -92,7 +74,7 @@
     <div class="guide-box" id="guide-box">
       <div class="guide-hint">SADECE TC'Yİ ÇİZGİYE ORTALAYIN</div>
     </div>
-    <div id="live-debug">Ultra Hızlı Lazer Modu Aktif...</div>
+    <div id="live-debug">Bulanıklık ve Sarsıntı Dedektörü Aktif...</div>
   </div>
 
   <canvas id="snapshot" style="display: none;"></canvas>
@@ -109,14 +91,13 @@
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(()=>{}); }); }
 
     let ocrWorker = null, videoTrack = null, isTorchOn = false, isScanning = false, isProcessing = false;
-    let scanAttempt = 0;
 
     async function initOCR() {
       try {
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
           tessedit_char_whitelist: '0123456789',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE // ÇOK ÖNEMLİ: En yüksek hız için Tek Satır modu.
+          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE 
         });
         startCamera();
       } catch (err) {}
@@ -126,7 +107,6 @@
       document.getElementById('cam-wrapper').style.display = 'block';
       document.getElementById('result-box').style.display = 'none';
       document.getElementById('restart-btn').style.display = 'none';
-      scanAttempt = 0;
       
       navigator.mediaDevices.getUserMedia({
         video: { 
@@ -175,32 +155,64 @@
       return d[9] === ((hane10 + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
     }
 
-    // Yüksek Hızlı Filtre (Sadece dar alana uygulandığı için milisaniyeler sürer)
-    function applyFastFieldFilter(ctx, width, height) {
+    // SARSINTI VE BULANIKLIK ENGELLEYİCİ + KESKİNLEŞTİRME (Hareket Modu)
+    function applyMotionOptimizedFilter(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
-      
-      let minBrightness = 255;
-      let maxBrightness = 0;
       const grays = new Uint8Array(width * height);
-
+      
+      let minB = 255, maxB = 0;
       for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-        let gray = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
-        grays[p] = gray;
-        if (gray < minBrightness) minBrightness = gray;
-        if (gray > maxBrightness) maxBrightness = gray;
+        let g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
+        grays[p] = g;
+        if (g < minB) minB = g;
+        if (g > maxB) maxB = g;
       }
 
-      if (maxBrightness - minBrightness < 30) { minBrightness = 0; maxBrightness = 255; }
-      const isDarkMode = (minBrightness + maxBrightness) / 2 < 100;
+      // 1. BULANIKLIK ANALİZİ (Laplacian Varyansı)
+      let lapSum = 0, lapSumSq = 0, lapCount = 0;
+      for (let y = 1; y < height - 1; y++) {
+        let r = y * width;
+        for (let x = 1; x < width - 1; x++) {
+          let idx = r + x;
+          let lap = grays[idx - width] + grays[idx - 1] - (4 * grays[idx]) + grays[idx + 1] + grays[idx + width];
+          lapSum += lap; lapSumSq += lap * lap; lapCount++;
+        }
+      }
+      let mean = lapSum / lapCount;
+      let variance = (lapSumSq / lapCount) - (mean * mean);
 
-      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-        let stretched = ((grays[p] - minBrightness) / (maxBrightness - minBrightness)) * 255;
-        let val = stretched < 130 ? 0 : 255; // Kontrast artırıldı
-        if (isDarkMode) val = 255 - val;
-        d[i] = d[i+1] = d[i+2] = val;
+      // AŞIRI SARSINTI VARSA KAREYİ REDDET (Motoru yormadan diğer saliseye geç)
+      if (variance < 40) return false; 
+
+      // 2. YAPAY KESKİNLEŞTİRME (Unsharp Masking - Kayan pikselleri düzeltir)
+      const sharpened = new Uint8Array(width * height);
+      for (let y = 1; y < height - 1; y++) {
+        let r = y * width;
+        for (let x = 1; x < width - 1; x++) {
+           let idx = r + x;
+           let sum = 5 * grays[idx] - grays[idx - 1] - grays[idx + 1] - grays[idx - width] - grays[idx + width];
+           sharpened[idx] = sum > 255 ? 255 : (sum < 0 ? 0 : sum);
+        }
+      }
+
+      // 3. EŞİKLEME VE DİJİTAL EKRAN KORUMASI
+      if (maxB - minB < 30) { minB = 0; maxB = 255; }
+      const isDarkMode = (minB + maxB) / 2 < 100;
+
+      for (let y = 1; y < height - 1; y++) {
+        let r = y * width;
+        for (let x = 1; x < width - 1; x++) {
+           let idx = r + x;
+           let stretched = ((sharpened[idx] - minB) / (maxB - minB)) * 255;
+           let val = stretched < 130 ? 0 : 255; 
+           if (isDarkMode) val = 255 - val;
+           let px = idx << 2;
+           d[px] = d[px+1] = d[px+2] = val;
+        }
       }
       ctx.putImageData(imgData, 0, 0);
+      return Math.round(variance); // Bulanık değil, işleme devam edilebilir
     }
 
     async function scanFrame() {
@@ -208,7 +220,6 @@
       const video = document.getElementById('camera');
       if (isProcessing || !video.videoWidth) { requestAnimationFrame(scanFrame); return; }
       isProcessing = true;
-      scanAttempt++;
 
       try {
         const vW = video.videoWidth, vH = video.videoHeight;
@@ -217,9 +228,7 @@
         const scale = Math.max(cW / vW, cH / vH);
         
         const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
-        
-        // DİKKAT: Alan ince bir şerit yapıldı.
-        const boxW = cW * 0.90, boxH = 55;
+        const boxW = cW * 0.90, boxH = 55; // Lazer ince kutu
         const boxX = (cW - boxW) / 2, boxY = (cH * 0.40) - (boxH / 2);
 
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
@@ -237,13 +246,25 @@
         ctx.imageSmoothingEnabled = false; 
         ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, cropW * upscaleFactor, cropH * upscaleFactor);
 
-        applyFastFieldFilter(ctx, targetW, targetH);
+        // BULANIKLIK KONTROLÜ
+        const sharpnessScore = applyMotionOptimizedFilter(ctx, targetW, targetH);
+
+        const debugEl = document.getElementById('live-debug');
+        if (sharpnessScore === false) {
+           // Aşırı sarsıntı var, Tesseract'a göndermeden iptal et! (Zaman tasarrufu)
+           debugEl.textContent = "Sarsıntı (Bulanık Kare Atlandı)...";
+           debugEl.style.color = "#ef4444";
+           isProcessing = false;
+           if (isScanning) requestAnimationFrame(scanFrame);
+           return;
+        }
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
         
         const cleanedText = text.replace(/[^0-9]/g, '').trim();
-        const visualText = cleanedText.length > 5 ? cleanedText.substring(0,25) : "Taranıyor...";
-        document.getElementById('live-debug').textContent = "HIZLI OKUMA: " + visualText;
+        const visualText = cleanedText.length > 5 ? cleanedText.substring(0,25) : "Netlik Yakalandı, Okunuyor...";
+        debugEl.textContent = "HIZLI OKUMA: " + visualText;
+        debugEl.style.color = "#4ade80";
 
         const digits = text.replace(/[^0-9]/g, '');
         
@@ -267,14 +288,13 @@
       } catch (err) {}
 
       isProcessing = false; 
-      // Hızlandırılmış dönüş (Bekleme süresi 20 milisaniyeye indirildi!)
-      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 20); 
+      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 10); 
     }
 
     function startContinuousScan() {
       isScanning = true; isProcessing = false;
       document.getElementById('guide-box').classList.add('scanning');
-      document.getElementById('status-badge').textContent = "Ultra Hızlı Lazer Modu Aktif";
+      document.getElementById('status-badge').textContent = "Lazer Hareket Modu Aktif";
       document.getElementById('status-badge').style.color = "#4ade80";
       requestAnimationFrame(scanFrame);
     }
