@@ -2,15 +2,15 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>TC Kimlik -> QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>TC Kimlik Tarayıcı (Pro)</title>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='364' y='102' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='102' y='364' width='46' height='46' rx='8' fill='%2338bdf8'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Cpath fill='%2338bdf8' d='M102 102h46v46h-46zm262 0h46v46h-46zm-262 262h46v46h-46z'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E">
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -19,45 +19,42 @@
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
     body { 
       background: #0f172a; color: #f8fafc; padding: 75px 16px 36px; 
-      display: flex; flex-direction: column; align-items: center; min-height: 100vh; 
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+      overscroll-behavior-y: contain; /* Yenileme kaydırmasını engeller */
     }
 
     #status-badge {
-      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0);
       width: calc(100% - 32px); max-width: 400px; padding: 12px 16px;
-      background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(8px);
+      background: rgba(15, 23, 42, 0.90); backdrop-filter: blur(10px);
       border: 1px solid #334155; border-radius: 12px;
       font-size: 14px; font-weight: 700; text-align: center; color: #38bdf8;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); z-index: 1000;
-    }
-
-    #install-app-btn {
-      display: none; width: 100%; max-width: 400px; padding: 12px; margin-bottom: 12px;
-      background: #16a34a; color: #fff; font-size: 14px; font-weight: 700;
-      border: none; border-radius: 10px; cursor: pointer; text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); z-index: 1000;
+      transition: color 0.3s;
     }
 
     #result-box { 
       width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; 
-      border-radius: 12px; padding: 16px; margin-bottom: 14px; text-align: center; display: none; 
-      animation: popIn 0.3s ease-out;
+      border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; 
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      transform: translateZ(0); /* Donanım hızlandırma */
     }
-    @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     
-    #detected-tc { font-size: 26px; font-weight: 800; letter-spacing: 4px; color: #4ade80; margin-bottom: 10px; }
-    #qrcode { display: inline-block; padding: 10px; background: #fff; border-radius: 8px; }
+    #detected-tc { font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #4ade80; margin-bottom: 12px; }
+    #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
     .camera-wrapper { 
-      position: relative; width: 100%; max-width: 400px; height: 380px; border-radius: 14px; 
-      overflow: hidden; border: 2px solid #334155; background: #000; 
+      position: relative; width: 100%; max-width: 400px; height: 380px; border-radius: 16px; 
+      overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transform: translateZ(0);
     }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    /* Otomatik Tarama Animasyonlu Kılavuz Kutusu */
     .guide-box {
       position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-      width: 82%; height: 68px; border: 2px solid #38bdf8; border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); pointer-events: none;
+      width: 85%; height: 70px; border: 2px solid #38bdf8; border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65); pointer-events: none;
       transition: border-color 0.3s;
     }
     .guide-box.scanning {
@@ -65,52 +62,55 @@
       animation: pulseBorder 1.5s infinite;
     }
     @keyframes pulseBorder {
-      0% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 10px #fbbf24 inset; }
-      50% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 25px #fbbf24 inset; }
-      100% { box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55), 0 0 10px #fbbf24 inset; }
+      0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; }
+      50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 20px #fbbf24 inset; }
+      100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; }
     }
     
     .guide-hint {
-      position: absolute; top: -22px; left: 0; width: 100%; text-align: center;
-      font-size: 11px; font-weight: 700; color: #38bdf8; text-transform: uppercase;
-      letter-spacing: 1px;
+      position: absolute; top: -26px; left: 0; width: 100%; text-align: center;
+      font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;
     }
 
     #torch-btn {
       display: none; position: absolute; top: 12px; right: 12px;
-      width: 40px; height: 40px; border-radius: 50%;
-      background: rgba(15, 23, 42, 0.75); border: 1px solid #475569;
-      color: #f8fafc; font-size: 18px; cursor: pointer; z-index: 20;
-      align-items: center; justify-content: center; backdrop-filter: blur(4px);
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(15, 23, 42, 0.6); border: 1px solid #475569;
+      color: #fff; font-size: 20px; cursor: pointer; z-index: 20;
+      align-items: center; justify-content: center; backdrop-filter: blur(8px);
     }
 
     #restart-btn { 
-      display: none; position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-      padding: 14px 38px; font-size: 16px; font-weight: 700; 
-      background: #2563eb; color: #fff; border: 2px solid #60a5fa; border-radius: 30px; 
-      cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.6); z-index: 10;
+      display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      padding: 14px 32px; font-size: 16px; font-weight: 700; 
+      background: #2563eb; color: #fff; border: none; border-radius: 30px; 
+      cursor: pointer; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); z-index: 10;
     }
-    #restart-btn:active { transform: translateX(-50%) scale(0.95); }
+    #restart-btn:active { background: #1d4ed8; }
 
     .history-card {
-      width: 100%; max-width: 400px; margin-top: 20px; background: #1e293b;
-      border: 1px solid #334155; border-radius: 12px; padding: 16px;
+      width: 100%; max-width: 400px; margin-top: 24px; background: #1e293b;
+      border: 1px solid #334155; border-radius: 16px; padding: 16px;
     }
     .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .history-header h4 { font-size: 15px; color: #cbd5e1; font-weight: 700; }
-    .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; }
-    .history-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; cursor: pointer; }
-    .history-tc { font-weight: 700; font-size: 15px; color: #38bdf8; letter-spacing: 1px; }
+    .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; padding-right: 4px; }
+    .history-item { display: flex; justify-content: space-between; align-items: center; background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; cursor: pointer; }
+    .history-tc { font-weight: 700; font-size: 16px; color: #38bdf8; letter-spacing: 1px; }
     .history-time { font-size: 12px; color: #64748b; }
-    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 10px 0; }
-    .signature { margin-top: 24px; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #64748b; text-transform: uppercase; }
+    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 16px 0; }
+    
+    .signature { margin-top: 24px; font-size: 12px; font-weight: 700; letter-spacing: 3px; color: #475569; text-transform: uppercase; }
+
+    /* PWA Yükleme */
+    #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
   </style>
 </head>
 <body>
 
-  <div id="status-badge">OCR Motoru Hazırlanıyor...</div>
-  <button id="install-app-btn">📲 Uygulamayı Telefona Yükle</button>
+  <div id="status-badge">Sistem Yükleniyor...</div>
+  <button id="install-app-btn">📲 Uygulamayı Ana Ekrana Ekle</button>
 
   <div id="result-box">
     <div id="detected-tc"></div>
@@ -121,7 +121,7 @@
     <video id="camera" autoplay playsinline muted></video>
     <button id="torch-btn" title="Flaş Aç/Kapat">🔦</button>
     <div class="guide-box" id="guide-box">
-      <div class="guide-hint">TC Numarasını Buraya Hizalayın</div>
+      <div class="guide-hint">TC Numarasını Buraya Ortala</div>
     </div>
     <button id="restart-btn">Yeni Kimlik Tara</button>
   </div>
@@ -130,7 +130,7 @@
 
   <div class="history-card">
     <div class="history-header">
-      <h4>📱 Cihaz İçi Geçmiş</h4>
+      <h4>📱 Çevrimdışı Geçmiş</h4>
       <button id="clear-history-btn" class="clear-btn">Temizle</button>
     </div>
     <ul id="history-list" class="history-list"></ul>
@@ -139,9 +139,10 @@
   <div class="signature">ERYSNGL</div>
 
   <script>
+    // Service Worker Kaydı (Çevrimdışı erişim garantisi)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js', { scope: './' }).catch(() => {});
+        navigator.serviceWorker.register('sw.js', { scope: './' }).catch(err => console.log('SW:', err));
       });
     }
 
@@ -170,45 +171,53 @@
     const detectedTc = document.getElementById('detected-tc');
     const qrContainer = document.getElementById('qrcode');
     const historyList = document.getElementById('history-list');
-    const clearHistoryBtn = document.getElementById('clear-history-btn');
     const guideBox = document.getElementById('guide-box');
 
     let ocrWorker = null;
     let videoTrack = null;
     let isTorchOn = false;
-    let isScanning = false; // Otomatik tarama bayrağı
+    let isScanning = false;
+    let isProcessing = false; // Arayüzün kasmasını önleyen kilit
 
-    // Tesseract'i Başlat
+    // Tesseract Kurulumu (Offline uyumlu)
     async function initOCR() {
       try {
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
           tessedit_char_whitelist: '0123456789',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE
+          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE // Tek satır okuma (En hızlı mod)
         });
         startCamera();
       } catch (err) {
-        statusBadge.textContent = "OCR başlatılamadı.";
+        statusBadge.textContent = "Hata: Motor Başlatılamadı.";
       }
     }
 
-    // Kamera Başlat
+    // Gelişmiş Kamera Başlatma (Parlama ve Bulanıklık Korumalı)
     function startCamera() {
       navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 }, advanced: [{ focusMode: 'continuous' }] }
+        video: { 
+          facingMode: { ideal: "environment" }, 
+          width: { ideal: 1920 }, 
+          height: { ideal: 1080 },
+          advanced: [
+            { focusMode: 'continuous' },
+            { exposureMode: 'continuous' }, // Ekrandan okurken parlamayı keser
+            { whiteBalanceMode: 'continuous' }
+          ] 
+        }
       }).then(stream => { 
         video.srcObject = stream;
         videoTrack = stream.getVideoTracks()[0];
         const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
         if (capabilities.torch) torchBtn.style.display = 'flex';
         
-        // Video yüklenince otomatik taramayı başlat
         video.addEventListener('loadeddata', () => {
           startContinuousScan();
         });
       }).catch(() => { 
-        statusBadge.textContent = "Kamera izni alınamadı."; 
-        statusBadge.style.color = "#f87171";
+        statusBadge.textContent = "Kamera izni gerekiyor."; 
+        statusBadge.style.color = "#ef4444";
       });
     }
 
@@ -217,9 +226,9 @@
       isTorchOn = !isTorchOn;
       try {
         await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] });
-        torchBtn.style.background = isTorchOn ? "#fbbf24" : "rgba(15, 23, 42, 0.75)";
-        torchBtn.style.color = isTorchOn ? "#000" : "#f8fafc";
-      } catch (e) { console.error("Flaş hatası:", e); }
+        torchBtn.style.background = isTorchOn ? "#fbbf24" : "rgba(15, 23, 42, 0.6)";
+        torchBtn.style.color = isTorchOn ? "#000" : "#fff";
+      } catch (e) {}
     });
 
     function tcDogrula(tc) {
@@ -232,126 +241,141 @@
       return d[9] === ((hane10 + 10) % 10) && d[10] === hane11;
     }
 
-    // Arka Plan Desenlerini Silen Dinamik Eşikleme (Integral Image tabanlı Bradley Yöntemi)
-    // Kimlik kartlarındaki desenleri bembeyaz, yazıları simsiyah yapar.
+    // Yüksek Hızlı Filtre (Bellek Optimizasyonlu)
     function applyRobustAdaptiveThreshold(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
       const grays = new Uint8Array(width * height);
-
-      // Gri tonlamaya çevir
+      
       for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-        grays[p] = Math.round(d[i] * 0.299 + d[i+1] * 0.587 + d[i+2] * 0.114);
+        grays[p] = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
       }
 
-      // İntegral Görüntü
       const intImg = new Uint32Array(width * height);
       for (let y = 0; y < height; y++) {
         let sum = 0;
+        let rowOffset = y * width;
         for (let x = 0; x < width; x++) {
-          sum += grays[y * width + x];
-          intImg[y * width + x] = sum + (y > 0 ? intImg[(y - 1) * width + x] : 0);
+          sum += grays[rowOffset + x];
+          intImg[rowOffset + x] = sum + (y > 0 ? intImg[rowOffset - width + x] : 0);
         }
       }
 
-      const s = Math.max(Math.floor(width / 16), 2); // Pencere boyutu
+      const s = Math.max(Math.floor(width / 16), 2);
       const s2 = Math.floor(s / 2);
-      const T = 15; // Yüzde 15 daha koyu olan yerleri siyah (metin) yap
+      const T = 15; // %15 koyuluk eşiği
 
       for (let y = 0; y < height; y++) {
+        let rowOffset = y * width;
+        let y1 = Math.max(0, y - s2) * width;
+        let y2 = Math.min(height - 1, y + s2) * width;
+        
         for (let x = 0; x < width; x++) {
-          const x1 = Math.max(0, x - s2), x2 = Math.min(width - 1, x + s2);
-          const y1 = Math.max(0, y - s2), y2 = Math.min(height - 1, y + s2);
-          const count = (x2 - x1) * (y2 - y1);
+          let x1 = Math.max(0, x - s2);
+          let x2 = Math.min(width - 1, x + s2);
+          let count = (x2 - x1) * (Math.min(height - 1, y + s2) - Math.max(0, y - s2));
           
-          const sum = intImg[y2 * width + x2] - intImg[y1 * width + x2] - intImg[y2 * width + x1] + intImg[y1 * width + x1];
-          const idx = (y * width + x) * 4;
+          let sum = intImg[y2 + x2] - intImg[y1 + x2] - intImg[y2 + x1] + intImg[y1 + x1];
+          let val = (grays[rowOffset + x] * count) < (sum * (100 - T) / 100) ? 0 : 255;
           
-          // Eğer piksel çevresinin ortalamasından %15 daha koyu ise siyah, değilse beyaz
-          const isText = (grays[y * width + x] * count) < (sum * (100 - T) / 100);
-          const val = isText ? 0 : 255;
-          
+          let idx = (rowOffset + x) << 2;
           d[idx] = d[idx+1] = d[idx+2] = val;
         }
       }
       ctx.putImageData(imgData, 0, 0);
     }
 
-    // Otomatik Tarama Döngüsü
+    // Ana Tarama Döngüsü (Asenkron - UI Donmasını Engeller)
     async function scanFrame() {
       if (!isScanning || !video.videoWidth) return;
+      if (isProcessing) {
+        // Motor meşgulse bekle (Cihazı dondurmamak için)
+        requestAnimationFrame(scanFrame);
+        return;
+      }
 
-      const vWidth = video.videoWidth;
-      const vHeight = video.videoHeight;
-      const cWidth = camWrapper.clientWidth;
-      const cHeight = camWrapper.clientHeight;
-      const scale = Math.max(cWidth / vWidth, cHeight / vHeight);
-      
-      const offsetX = ((vWidth * scale) - cWidth) / 2;
-      const offsetY = ((vHeight * scale) - cHeight) / 2;
-
-      const boxW = cWidth * 0.82;
-      const boxH = 68;
-      const boxX = (cWidth - boxW) / 2;
-      const boxY = (cHeight * 0.40) - (boxH / 2);
-
-      const cropX = (boxX + offsetX) / scale;
-      const cropY = (boxY + offsetY) / scale;
-      const cropW = boxW / scale;
-      const cropH = boxH / scale;
-
-      const targetW = cropW * 2; // Daha iyi OCR için 2x büyüt
-      const targetH = cropH * 2;
-      canvas.width = targetW;
-      canvas.height = targetH;
-      
-      const ctx = canvas.getContext('2d');
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, targetW, targetH);
-
-      // Deseni/arka planı yok et, yazıyı netleştir
-      applyRobustAdaptiveThreshold(ctx, targetW, targetH);
+      isProcessing = true; // Yeni işlem kilitlendi
 
       try {
+        const vW = video.videoWidth, vH = video.videoHeight;
+        const cW = camWrapper.clientWidth, cH = camWrapper.clientHeight;
+        const scale = Math.max(cW / vW, cH / vH);
+        
+        const offsetX = ((vW * scale) - cW) / 2;
+        const offsetY = ((vH * scale) - cH) / 2;
+
+        const boxW = cW * 0.85;
+        const boxH = 70;
+        const boxX = (cW - boxW) / 2;
+        const boxY = (cH * 0.40) - (boxH / 2);
+
+        const cropX = (boxX + offsetX) / scale;
+        const cropY = (boxY + offsetY) / scale;
+        const cropW = boxW / scale;
+        const cropH = boxH / scale;
+
+        // OCR Başarısı için Kenar Boşluğu (Padding) Ekleme (Kurumsal Standart)
+        const padding = 20; 
+        const targetW = (cropW * 2) + (padding * 2);
+        const targetH = (cropH * 2) + (padding * 2);
+        
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        
+        // Önce bembeyaz bir zemin çiz
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, targetW, targetH);
+        
+        ctx.imageSmoothingEnabled = false;
+        // Görüntüyü beyaz boşluğun içine (ortaya) çiz
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, cropW * 2, cropH * 2);
+
+        applyRobustAdaptiveThreshold(ctx, targetW, targetH);
+
         const { data: { text } } = await ocrWorker.recognize(canvas);
         const digits = text.replace(/[^0-9]/g, '');
         const adaylar = digits.match(/[1-9][0-9]{10}/g) || [];
         const gecerliTc = adaylar.find(tcDogrula);
 
         if (gecerliTc) {
-          // Başarılı Bulma: Taramayı Durdur!
           isScanning = false;
           guideBox.classList.remove('scanning');
-          guideBox.style.borderColor = "#4ade80"; // Yeşil Kutu
+          guideBox.style.borderColor = "#4ade80";
           
           showQrCode(gecerliTc);
           saveToHistory(gecerliTc);
           
           statusBadge.textContent = "✓ TC Bulundu!";
           statusBadge.style.color = "#4ade80";
-          restartBtn.style.display = 'block'; // Yeniden başlat butonunu göster
-          return; // Döngüden çık
+          restartBtn.style.display = 'block';
+          
+          if ("vibrate" in navigator) navigator.vibrate(200); // Başarı titreşimi
+          isProcessing = false;
+          return; 
         }
       } catch (err) {}
 
-      // Bulamadıysa biraz bekleyip tekrar dene (Telefonu ısıtmamak için yarım saniye gecikme)
+      isProcessing = false; // İşlem bitti, kilit açıldı
+      
+      // Donanımı rahatlatmak için 250ms dinlendir ve sıradaki frame'i çağır
       if (isScanning) {
-        setTimeout(scanFrame, 400);
+        setTimeout(() => requestAnimationFrame(scanFrame), 250);
       }
     }
 
     function startContinuousScan() {
       isScanning = true;
+      isProcessing = false;
       resultBox.style.display = 'none';
       restartBtn.style.display = 'none';
       guideBox.classList.add('scanning');
       guideBox.style.borderColor = "#fbbf24";
-      statusBadge.textContent = "Kutuyu TC'ye hizalayın. Otomatik aranıyor...";
+      statusBadge.textContent = "Otomatik Aranıyor... (Hizalayın)";
       statusBadge.style.color = "#fbbf24";
-      scanFrame();
+      requestAnimationFrame(scanFrame);
     }
 
-    // Yeniden Tara Butonu
     restartBtn.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       startContinuousScan();
@@ -360,7 +384,7 @@
     function showQrCode(tc) {
       detectedTc.textContent = tc;
       qrContainer.innerHTML = '';
-      new QRCode(qrContainer, { text: tc, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+      new QRCode(qrContainer, { text: tc, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
       resultBox.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -392,22 +416,23 @@
         li.innerHTML = `<span class="history-tc">${item.tc}</span><span class="history-time">${item.time}</span>`;
         li.addEventListener('click', () => {
           showQrCode(item.tc);
-          isScanning = false; // Geçmişten bakarken taramayı durdur
+          isScanning = false;
           guideBox.classList.remove('scanning');
+          guideBox.style.borderColor = "#38bdf8";
           restartBtn.style.display = 'block';
-          statusBadge.textContent = "Geçmişten yüklendi!";
+          statusBadge.textContent = "Geçmişten Yüklendi!";
           statusBadge.style.color = "#38bdf8";
         });
         historyList.appendChild(li);
       });
     }
 
-    clearHistoryBtn.addEventListener('click', () => {
+    document.getElementById('clear-history-btn').addEventListener('click', () => {
       if (confirm("Geçmiş silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); }
     });
 
     renderHistory();
-    initOCR(); // Sayfa yüklenince her şeyi başlatan ana fonksiyon
+    initOCR();
   </script>
 </body>
 </html>
