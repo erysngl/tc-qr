@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TC Kimlik Tarayıcı (Pro - Ekran Uyumlu)</title>
+  <title>TC Tarayıcı</title>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
@@ -15,71 +15,91 @@
 
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #f8fafc; padding: 75px 16px 36px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
+    body { background: #0f172a; color: #f8fafc; padding: 70px 16px 36px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
 
-    #status-badge { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0); width: calc(100% - 32px); max-width: 400px; padding: 12px 16px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border: 1px solid #334155; border-radius: 12px; font-size: 13px; font-weight: 700; text-align: center; color: #38bdf8; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); z-index: 1000; }
+    #status-badge { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0); padding: 10px 20px; background: rgba(15, 23, 42, 0.90); backdrop-filter: blur(8px); border: 1px solid #334155; border-radius: 20px; font-size: 13px; font-weight: 700; text-align: center; color: #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1000; letter-spacing: 0.5px; transition: all 0.3s ease; }
 
-    #result-box { width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; animation: popIn 0.3s forwards; }
-    @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    #detected-tc { font-size: 30px; font-weight: 900; letter-spacing: 4px; color: #4ade80; margin-bottom: 12px; }
-    #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 14px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; }
 
-    #restart-btn { display: none; width: 100%; max-width: 400px; padding: 18px; margin-bottom: 16px; font-size: 17px; font-weight: 700; background: #2563eb; color: #fff; border: none; border-radius: 12px; cursor: pointer; z-index: 10; box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); }
+    #result-box { width: 100%; max-width: 400px; background: #1e293b; border: 1px solid #10b981; border-radius: 16px; padding: 24px; margin-bottom: 16px; text-align: center; display: none; animation: popIn 0.3s forwards; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15); }
+    @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     
-    .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 420px; border-radius: 16px; overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+    #detected-tc { font-size: 32px; font-weight: 900; letter-spacing: 5px; color: #10b981; margin-bottom: 16px; }
+    #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 12px; }
+
+    #restart-btn { display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px; font-size: 15px; font-weight: 700; background: #3b82f6; color: #fff; border: none; border-radius: 12px; cursor: pointer; z-index: 10; letter-spacing: 1px; transition: background 0.2s; }
+    #restart-btn:active { background: #2563eb; }
+    
+    .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 420px; border-radius: 20px; overflow: hidden; border: 1px solid #334155; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    /* YENİ: Alttaki tuşları kesmek için yükseklik 45px'e düşürüldü */
-    .guide-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 90%; height: 45px; border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85); pointer-events: none; transition: border-color 0.2s; }
-    .guide-box::after { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(251, 191, 36, 0.6); transform: translateY(-50%); }
-    .guide-box.scanning { border-color: #fbbf24; animation: pulseBorder 0.8s infinite; }
-    @keyframes pulseBorder { 0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 8px #fbbf24 inset; } 50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 15px #fbbf24 inset; } 100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85), 0 0 8px #fbbf24 inset; } }
+    /* PROFESYONEL VİZÖR TASARIMI */
+    .guide-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 0 9999px rgba(15, 23, 42, 0.85); pointer-events: none; z-index: 2; clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 45%, 95% 45%, 95% 55%, 5% 55%, 5% 100%, 100% 100%, 100% 0%); }
     
-    .guide-hint { position: absolute; top: -30px; left: 0; width: 100%; text-align: center; font-size: 13px; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+    .guide-corners {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 90%; height: 45px; z-index: 3;
+      background:
+        linear-gradient(to right, #38bdf8 3px, transparent 3px) 0 0,
+        linear-gradient(to bottom, #38bdf8 3px, transparent 3px) 0 0,
+        linear-gradient(to left, #38bdf8 3px, transparent 3px) 100% 0,
+        linear-gradient(to bottom, #38bdf8 3px, transparent 3px) 100% 0,
+        linear-gradient(to right, #38bdf8 3px, transparent 3px) 0 100%,
+        linear-gradient(to top, #38bdf8 3px, transparent 3px) 0 100%,
+        linear-gradient(to left, #38bdf8 3px, transparent 3px) 100% 100%,
+        linear-gradient(to top, #38bdf8 3px, transparent 3px) 100% 100%;
+      background-repeat: no-repeat; background-size: 16px 16px; pointer-events: none;
+    }
+    
+    .guide-laser { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(239, 68, 68, 0.8); box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); transform: translateY(-50%); animation: pulseLaser 1.5s infinite; }
+    @keyframes pulseLaser { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-    #live-debug { position: absolute; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.9); color: #4ade80; font-family: monospace; font-size: 13px; font-weight: bold; padding: 10px; text-align: center; min-height: 38px; word-wrap: break-word; z-index: 50; border-top: 1px solid #334155; }
+    #live-debug { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #cbd5e1; font-family: monospace; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; text-align: center; white-space: nowrap; z-index: 50; backdrop-filter: blur(4px); }
 
-    #torch-btn { display: none; position: absolute; top: 12px; right: 12px; width: 50px; height: 50px; border-radius: 50%; background: rgba(15, 23, 42, 0.7); border: 2px solid #475569; color: #fff; font-size: 24px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    #torch-btn { display: none; position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 20px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.2s; }
 
-    .history-card { width: 100%; max-width: 400px; margin-top: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 16px; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .history-header h4 { font-size: 15px; color: #cbd5e1; font-weight: 700; }
-    .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
-    .history-list { list-style: none; display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
-    .history-item { background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
+    .history-card { width: 100%; max-width: 400px; margin-top: 16px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .history-header h4 { font-size: 14px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .clear-btn { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
+    .history-item { background: #0f172a; padding: 14px; border-radius: 12px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; transition: transform 0.1s; }
+    .history-item:active { transform: scale(0.98); }
     .history-row-top { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .history-tc { font-weight: 700; font-size: 18px; color: #38bdf8; letter-spacing: 1px; }
-    .history-date { font-size: 11px; color: #64748b; text-align: right; }
-    .name-btn { align-self: flex-start; background: #1e293b; border: 1px solid #475569; color: #cbd5e1; font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
-    .name-btn.has-name { background: #0f766e; border-color: #0d9488; color: #ccfbf1; }
-    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 16px 0; }
+    .history-tc { font-weight: 800; font-size: 17px; color: #e2e8f0; letter-spacing: 1px; }
+    .history-date { font-size: 12px; color: #64748b; font-weight: 500; }
+    .name-btn { align-self: flex-start; background: transparent; border: none; color: #38bdf8; font-size: 13px; font-weight: 600; padding: 0; cursor: pointer; }
+    .name-btn.has-name { color: #10b981; }
+    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 20px 0; }
   </style>
 </head>
 <body>
 
-  <div id="status-badge">Sistem Yükleniyor...</div>
+  <div id="status-badge">Başlatılıyor</div>
+  <button id="install-app-btn">Uygulamayı Yükle</button>
 
   <div id="result-box">
     <div id="detected-tc"></div>
     <div id="qrcode"></div>
   </div>
 
-  <button id="restart-btn">YENİ KİMLİK TARA</button>
+  <button id="restart-btn">YENİ TARAMA</button>
 
   <div class="camera-wrapper" id="cam-wrapper">
     <video id="camera" autoplay playsinline muted></video>
-    <button id="torch-btn" title="Flaş Aç/Kapat">🔦</button>
-    <div class="guide-box" id="guide-box">
-      <div class="guide-hint">SADECE TC'Yİ ÇİZGİYE ORTALAYIN</div>
+    <button id="torch-btn">🔦</button>
+    <div class="guide-overlay"></div>
+    <div class="guide-corners">
+      <div class="guide-laser"></div>
     </div>
-    <div id="live-debug">Ekran Okuma ve Hızlı Mod Aktif...</div>
+    <div id="live-debug">Kamera Bekleniyor</div>
   </div>
 
   <canvas id="snapshot" style="display: none;"></canvas>
 
   <div class="history-card">
     <div class="history-header">
-      <h4>📱 Çevrimdışı Geçmiş</h4>
+      <h4>Kayıt Geçmişi</h4>
       <button id="clear-history-btn" class="clear-btn">Temizle</button>
     </div>
     <ul id="history-list" class="history-list"></ul>
@@ -94,24 +114,28 @@
       try {
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
-          tessedit_char_whitelist: '0123456789 ', // Boşluk karakterine izin ver
+          tessedit_char_whitelist: '0123456789 ',
           tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE 
         });
         startCamera();
-      } catch (err) {}
+      } catch (err) { setStatus("Sistem Hatası", "#ef4444"); }
+    }
+
+    function setStatus(msg, color = "#94a3b8") {
+      const badge = document.getElementById('status-badge');
+      badge.textContent = msg;
+      badge.style.color = color;
+      badge.style.borderColor = color !== "#94a3b8" ? color : "#334155";
     }
 
     function startCamera() {
       document.getElementById('cam-wrapper').style.display = 'block';
       document.getElementById('result-box').style.display = 'none';
       document.getElementById('restart-btn').style.display = 'none';
+      setStatus("Kamera Hazırlanıyor");
       
       navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: { ideal: "environment" }, 
-          width: { ideal: 4096 }, height: { ideal: 2160 }, 
-          advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }] 
-        }
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }] }
       }).then(async stream => { 
         const video = document.getElementById('camera');
         video.srcObject = stream; 
@@ -122,7 +146,7 @@
           if (cap.torch) document.getElementById('torch-btn').style.display = 'flex';
         }, 500);
         video.addEventListener('loadeddata', () => { startContinuousScan(); });
-      }).catch(() => { document.getElementById('status-badge').textContent = "Kamera izni gerekiyor."; });
+      }).catch(() => { setStatus("Kamera İzni Reddedildi", "#ef4444"); });
     }
 
     function stopCamera() {
@@ -138,6 +162,7 @@
       if (!videoTrack) return;
       isTorchOn = !isTorchOn;
       try { await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] }); } catch (e) {}
+      document.getElementById('torch-btn').style.background = isTorchOn ? "rgba(255, 255, 255, 0.9)" : "rgba(15, 23, 42, 0.5)";
     });
 
     function tcDogrula(tc) {
@@ -145,40 +170,27 @@
       const d = tc.split('').map(Number);
       const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
       const ciftler = d[1] + d[3] + d[5] + d[7];
-      const hane10 = ((tekler * 7) - ciftler) % 10;
-      return d[9] === ((hane10 + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
+      return d[9] === ((tekler * 7 - ciftler + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
     }
 
-    // YENİ FİLTRE: Ekran ve Kağıt İçin Pürüzsüz Gri Tonlama (Anti-Aliasing Korunur)
     function applySmartGrayscale(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
-      
       let minB = 255, maxB = 0, total = 0;
+      
       for (let i = 0; i < d.length; i += 4) {
         let g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
-        if (g < minB) minB = g;
-        if (g > maxB) maxB = g;
-        total += g;
+        if (g < minB) minB = g; if (g > maxB) maxB = g; total += g;
       }
-
-      let avg = total / (width * height);
-      let isDarkMode = avg < 100; 
-
+      let isDarkMode = (total / (width * height)) < 100; 
       if (maxB - minB < 30) { minB = 0; maxB = 255; }
 
       for (let i = 0; i < d.length; i += 4) {
         let g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
-        
-        // Sadece kontrastı geriyoruz, sert siyah/beyaz kırılımı YOK
         let stretched = ((g - minB) / (maxB - minB)) * 255;
-        
-        // Eğer zemin koyu, yazı beyazsa (Saat Ekranı/Karanlık Mod) Tesseract okusun diye ters çevir
         if (isDarkMode) stretched = 255 - stretched;
-        
         d[i] = d[i+1] = d[i+2] = stretched;
       }
-      
       ctx.putImageData(imgData, 0, 0);
     }
 
@@ -195,52 +207,40 @@
         const scale = Math.max(cW / vW, cH / vH);
         
         const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
-        
-        // Kutu yüksekliği 45px'e düşürüldü. (Alttaki tuşları görmemesi için)
         const boxW = cW * 0.90, boxH = 45;
         const boxX = (cW - boxW) / 2, boxY = (cH * 0.40) - (boxH / 2);
 
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
         const cropW = boxW / scale, cropH = boxH / scale;
 
-        const upscaleFactor = 2.0; const padding = 20; 
-        const targetW = (cropW * upscaleFactor) + (padding * 2);
-        const targetH = (cropH * upscaleFactor) + (padding * 2);
+        const targetW = (cropW * 2) + 40, targetH = (cropH * 2) + 40;
         
         const canvas = document.getElementById('snapshot');
         canvas.width = targetW; canvas.height = targetH;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, targetW, targetH);
-        ctx.imageSmoothingEnabled = true; // Ekran piksellerini yumuşatır
-        ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, cropW * upscaleFactor, cropH * upscaleFactor);
+        ctx.imageSmoothingEnabled = true; 
+        ctx.drawImage(video, cropX, cropY, cropW, cropH, 20, 20, cropW * 2, cropH * 2);
 
-        // Yeni akıllı pürüzsüzleştirme filtresini uygula
         applySmartGrayscale(ctx, targetW, targetH);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
-        
         const rawText = text.replace(/[^0-9]/g, '').trim();
-        const visualText = rawText.length > 3 ? rawText.substring(0,25) : "Netleştiriliyor...";
-        document.getElementById('live-debug').textContent = "KAMERA: " + visualText;
-
-        const digits = rawText;
         
+        document.getElementById('live-debug').textContent = rawText.length > 2 ? rawText.substring(0,11) : "Hizalanıyor";
+
         let adayTc = null;
-        for (let i = 0; i <= digits.length - 11; i++) {
-          let dilim = digits.substring(i, i + 11);
-          if (tcDogrula(dilim)) {
-            adayTc = dilim;
-            break;
-          }
+        for (let i = 0; i <= rawText.length - 11; i++) {
+          let dilim = rawText.substring(i, i + 11);
+          if (tcDogrula(dilim)) { adayTc = dilim; break; }
         }
 
         if (adayTc) {
           stopCamera();
           showQrCode(adayTc); saveToHistory(adayTc);
-          document.getElementById('status-badge').textContent = "✓ SIFIR HATA İLE BULUNDU!";
-          document.getElementById('status-badge').style.color = "#4ade80";
-          if ("vibrate" in navigator) navigator.vibrate([200, 100, 200, 100, 400]); 
+          setStatus("✓ Doğrulandı", "#10b981");
+          if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]); 
           isProcessing = false; return; 
         }
       } catch (err) {}
@@ -251,9 +251,8 @@
 
     function startContinuousScan() {
       isScanning = true; isProcessing = false;
-      document.getElementById('guide-box').classList.add('scanning');
-      document.getElementById('status-badge').textContent = "Ekran Uyumlu Lazer Modu Aktif";
-      document.getElementById('status-badge').style.color = "#4ade80";
+      setStatus("Tarama Aktif", "#38bdf8");
+      document.getElementById('live-debug').textContent = "Hizalanıyor";
       requestAnimationFrame(scanFrame);
     }
 
@@ -262,7 +261,7 @@
     function showQrCode(tc) {
       document.getElementById('detected-tc').textContent = tc; 
       document.getElementById('qrcode').innerHTML = '';
-      new QRCode(document.getElementById('qrcode'), { text: tc, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+      new QRCode(document.getElementById('qrcode'), { text: tc, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M, colorDark : "#0f172a", colorLight : "#ffffff" });
       document.getElementById('result-box').style.display = 'block'; 
     }
 
@@ -272,12 +271,8 @@
       let existingItem = list.find(item => item.tc === tc);
       let preservedName = existingItem ? existingItem.name : "";
       list = list.filter(item => item.tc !== tc);
-      
       const now = new Date();
-      const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
-      list.unshift({ tc: tc, date: dateStr, time: timeStr, name: preservedName, timestamp: Date.now() });
+      list.unshift({ tc: tc, date: `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, name: preservedName, timestamp: Date.now() });
       if (list.length > 50) list = list.slice(0, 50);
       localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory();
     }
@@ -289,25 +284,26 @@
         if (newName !== null) { list[index].name = newName.trim(); localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory(); }
       }
     };
-    window.loadFromHistory = function(tc) { stopCamera(); showQrCode(tc); document.getElementById('status-badge').textContent = "Geçmişten Yüklendi!"; };
+    
+    window.loadFromHistory = function(tc) { stopCamera(); showQrCode(tc); setStatus("Geçmiş Kaydı", "#94a3b8"); };
 
     function renderHistory() {
       const list = getHistory(); const hl = document.getElementById('history-list'); hl.innerHTML = '';
-      if (list.length === 0) { hl.innerHTML = '<li class="empty-history">Kayıtlı numara yok.</li>'; return; }
+      if (list.length === 0) { hl.innerHTML = '<li class="empty-history">Kayıt bulunamadı.</li>'; return; }
       list.forEach(item => {
         const li = document.createElement('li'); li.className = 'history-item';
         const nameBtnClass = item.name ? "name-btn has-name" : "name-btn";
-        const nameBtnText = item.name ? item.name : "+ İsim Ekle";
+        const nameBtnText = item.name ? item.name : "İsim Ekle +";
         li.innerHTML = `
           <div class="history-row-top" onclick="loadFromHistory('${item.tc}')">
-            <span class="history-tc">${item.tc}</span><span class="history-date">${item.date} - ${item.time}</span>
+            <span class="history-tc">${item.tc}</span><span class="history-date">${item.date} ${item.time}</span>
           </div>
           <button class="${nameBtnClass}" onclick="editName('${item.tc}')">${nameBtnText}</button>`;
         hl.appendChild(li);
       });
     }
 
-    document.getElementById('clear-history-btn').addEventListener('click', () => { if (confirm("Geçmiş cihazdan silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); } });
+    document.getElementById('clear-history-btn').addEventListener('click', () => { if (confirm("Tüm kayıtlar silinecek. Onaylıyor musunuz?")) { localStorage.removeItem('tc_history_local'); renderHistory(); } });
 
     renderHistory(); initOCR();
   </script>
