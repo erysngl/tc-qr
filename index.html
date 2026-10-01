@@ -10,7 +10,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230f172a'/%3E%3Cpath fill='%2338bdf8' d='M102 102h46v46h-46zm262 0h46v46h-46zm-262 262h46v46h-46z'/%3E%3Crect x='70' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='332' y='70' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='70' y='332' width='110' height='110' rx='16' fill='none' stroke='%2338bdf8' stroke-width='16'/%3E%3Crect x='50' y='248' width='412' height='16' rx='8' fill='%232563eb'/%3E%3C/svg%3E">
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -18,10 +17,7 @@
 
   <style>
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { 
-      background: #0f172a; color: #f8fafc; padding: 75px 16px 36px; 
-      display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; 
-    }
+    body { background: #0f172a; color: #f8fafc; padding: 75px 16px 36px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
 
     #status-badge {
       position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0);
@@ -34,53 +30,22 @@
 
     #install-app-btn { display: none; width: 100%; max-width: 400px; padding: 14px; margin-bottom: 16px; background: #16a34a; color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; text-align: center; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4); }
 
-    #result-box { 
-      width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; 
-      border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; 
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
+    #result-box { width: 100%; max-width: 400px; background: #1e293b; border: 2px solid #4ade80; border-radius: 12px; padding: 20px; margin-bottom: 16px; text-align: center; display: none; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
     @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    
     #detected-tc { font-size: 28px; font-weight: 800; letter-spacing: 4px; color: #4ade80; margin-bottom: 12px; }
     #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-    #restart-btn { 
-      display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px;
-      font-size: 16px; font-weight: 700; background: #2563eb; color: #fff; 
-      border: none; border-radius: 12px; cursor: pointer; 
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); z-index: 10;
-    }
-
-    .camera-wrapper { 
-      position: relative; width: 100%; max-width: 400px; height: 380px; border-radius: 16px; 
-      overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
+    #restart-btn { display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px; font-size: 16px; font-weight: 700; background: #2563eb; color: #fff; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.5); z-index: 10; }
+    
+    .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 380px; border-radius: 16px; overflow: hidden; border: 2px solid #334155; background: #000; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    .guide-box {
-      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-      width: 85%; height: 70px; border: 2px solid #38bdf8; border-radius: 8px;
-      box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65); pointer-events: none; transition: border-color 0.3s;
-    }
+    .guide-box { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 70px; border: 2px solid #38bdf8; border-radius: 8px; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65); pointer-events: none; transition: border-color 0.3s; }
     .guide-box.scanning { border-color: #fbbf24; animation: pulseBorder 1.5s infinite; }
-    @keyframes pulseBorder {
-      0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; }
-      50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 20px #fbbf24 inset; }
-      100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; }
-    }
-    .guide-hint {
-      position: absolute; top: -38px; left: 0; width: 100%; text-align: center;
-      font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px;
-      background: rgba(0,0,0,0.5); padding: 4px; border-radius: 4px;
-    }
+    @keyframes pulseBorder { 0% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; } 50% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 20px #fbbf24 inset; } 100% { box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65), 0 0 8px #fbbf24 inset; } }
+    .guide-hint { position: absolute; top: -38px; left: 0; width: 100%; text-align: center; font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.5); padding: 4px; border-radius: 4px; }
 
-    #torch-btn {
-      display: none; position: absolute; top: 12px; right: 12px;
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(15, 23, 42, 0.6); border: 1px solid #475569;
-      color: #fff; font-size: 20px; cursor: pointer; z-index: 20;
-      align-items: center; justify-content: center; backdrop-filter: blur(8px);
-    }
+    #torch-btn { display: none; position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; border-radius: 50%; background: rgba(15, 23, 42, 0.6); border: 1px solid #475569; color: #fff; font-size: 20px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
 
     .history-card { width: 100%; max-width: 400px; margin-top: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 16px; }
     .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
@@ -146,64 +111,38 @@
     const historyList = document.getElementById('history-list');
     const guideBox = document.getElementById('guide-box');
 
-    let ocrWorker = null;
-    let videoTrack = null;
-    let isTorchOn = false;
-    let isScanning = false;
-    let isProcessing = false;
+    let ocrWorker = null, videoTrack = null, isTorchOn = false, isScanning = false, isProcessing = false;
 
-    // OCR Motoru
     async function initOCR() {
       try {
         ocrWorker = await Tesseract.createWorker('eng');
-        await ocrWorker.setParameters({
-          tessedit_char_whitelist: '0123456789',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE // Tek satır okuma
-        });
+        await ocrWorker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE });
         startCamera();
       } catch (err) { statusBadge.textContent = "Hata: Motor Başlatılamadı."; }
     }
 
-    // Kamera Başlatma ve Donanımsal Auto-Zoom
     function startCamera() {
-      camWrapper.style.display = 'block';
-      resultBox.style.display = 'none';
-      restartBtn.style.display = 'none';
-
+      camWrapper.style.display = 'block'; resultBox.style.display = 'none'; restartBtn.style.display = 'none';
       navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: { ideal: "environment" }, 
-          width: { ideal: 4096 }, // Kameradan alabileceğin en yüksek çözünürlüğü iste
-          height: { ideal: 2160 },
-          advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }] 
-        }
+        video: { facingMode: { ideal: "environment" }, width: { ideal: 4096 }, height: { ideal: 2160 }, advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }] }
       }).then(async stream => { 
-        video.srcObject = stream;
-        videoTrack = stream.getVideoTracks()[0];
-        
-        // Donanım özellikleri kontrolü (Zoom ve Flaş)
+        video.srcObject = stream; videoTrack = stream.getVideoTracks()[0];
         setTimeout(async () => {
           const capabilities = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
           if (capabilities.torch) torchBtn.style.display = 'flex';
-          
-          // Makro sınırı aşmak için Otomatik Dijital Zoom (Eğer cihaz destekliyorsa 2x yakınlaştır)
           if (capabilities.zoom) {
             const zoomVal = Math.min(Math.max(capabilities.zoom.min, 2.0), capabilities.zoom.max);
             try { await videoTrack.applyConstraints({ advanced: [{ zoom: zoomVal }] }); } catch(e){}
           }
         }, 500);
-        
         video.addEventListener('loadeddata', () => { startContinuousScan(); });
-      }).catch(() => { 
-        statusBadge.textContent = "Kamera izni gerekiyor."; statusBadge.style.color = "#ef4444";
-      });
+      }).catch(() => { statusBadge.textContent = "Kamera izni gerekiyor."; statusBadge.style.color = "#ef4444"; });
     }
 
     function stopCamera() {
       isScanning = false;
       if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; }
-      videoTrack = null; isTorchOn = false;
-      torchBtn.style.background = "rgba(15, 23, 42, 0.6)"; torchBtn.style.color = "#fff";
+      videoTrack = null; isTorchOn = false; torchBtn.style.background = "rgba(15, 23, 42, 0.6)"; torchBtn.style.color = "#fff";
       camWrapper.style.display = 'none'; restartBtn.style.display = 'block';
     }
 
@@ -226,15 +165,24 @@
       return d[9] === ((hane10 + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
     }
 
-    // Yüksek Çözünürlüklü Keskinleştirme Filtresi
-    function applyRobustAdaptiveThreshold(ctx, width, height) {
+    // YENİ: Akıllı Ekran Algılama (Dark Mode Inversion)
+    function applySmartAdaptiveThreshold(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const d = imgData.data;
       const grays = new Uint8Array(width * height);
+      let totalBrightness = 0;
       
+      // Griye çevir ve genel parlaklığı ölç
       for (let i = 0, p = 0; i < d.length; i += 4, p++) {
-        grays[p] = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
+        const g = (d[i]*77 + d[i+1]*150 + d[i+2]*29) >> 8;
+        grays[p] = g;
+        totalBrightness += g;
       }
+      
+      const avgBrightness = totalBrightness / (width * height);
+      // Eğer ortalama parlaklık çok düşükse (örneğin akıllı saat ekranı veya dark mode ise)
+      const isDarkMode = avgBrightness < 100; 
+
       const intImg = new Uint32Array(width * height);
       for (let y = 0; y < height; y++) {
         let sum = 0, rowOffset = y * width;
@@ -243,9 +191,11 @@
           intImg[rowOffset + x] = sum + (y > 0 ? intImg[rowOffset - width + x] : 0);
         }
       }
+      
       const s = Math.max(Math.floor(width / 16), 2);
       const s2 = Math.floor(s / 2);
       const T = 15;
+      
       for (let y = 0; y < height; y++) {
         let rowOffset = y * width;
         let y1 = Math.max(0, y - s2) * width, y2 = Math.min(height - 1, y + s2) * width;
@@ -253,7 +203,18 @@
           let x1 = Math.max(0, x - s2), x2 = Math.min(width - 1, x + s2);
           let count = (x2 - x1) * (Math.min(height - 1, y + s2) - Math.max(0, y - s2));
           let sum = intImg[y2 + x2] - intImg[y1 + x2] - intImg[y2 + x1] + intImg[y1 + x1];
-          let val = (grays[rowOffset + x] * count) < (sum * (100 - T) / 100) ? 0 : 255;
+          
+          let isDarkPixel = (grays[rowOffset + x] * count) < (sum * (100 - T) / 100);
+          
+          let val;
+          if (isDarkMode) {
+            // Ekranda beyaz yazıyı siyah, siyah arkaplanı beyaz yap (Tesseract için)
+            val = isDarkPixel ? 255 : 0;
+          } else {
+            // Normal kağıtta koyuyu siyah, açığı beyaz yap
+            val = isDarkPixel ? 0 : 255;
+          }
+          
           let idx = (rowOffset + x) << 2;
           d[idx] = d[idx+1] = d[idx+2] = val;
         }
@@ -278,9 +239,7 @@
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
         const cropW = boxW / scale, cropH = boxH / scale;
 
-        // KÜÇÜK YAZILARI DEVASA YAPMA (2.5x UPSCALE + PADDING)
-        const upscaleFactor = 2.5; 
-        const padding = 24; 
+        const upscaleFactor = 2.5; const padding = 24; 
         const targetW = (cropW * upscaleFactor) + (padding * 2);
         const targetH = (cropH * upscaleFactor) + (padding * 2);
         
@@ -288,12 +247,10 @@
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
         ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, targetW, targetH);
-        
-        // Piksellenmeyi önlemek için smoothing'i kapat
         ctx.imageSmoothingEnabled = false; 
         ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, cropW * upscaleFactor, cropH * upscaleFactor);
 
-        applyRobustAdaptiveThreshold(ctx, targetW, targetH);
+        applySmartAdaptiveThreshold(ctx, targetW, targetH);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
         const digits = text.replace(/[^0-9]/g, '');
@@ -307,6 +264,10 @@
           statusBadge.style.color = "#4ade80";
           if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]); 
           isProcessing = false; return; 
+        } else if (adaylar.length > 0) {
+          // Hatalı/Sahte TC Okuma Uyarısı
+          statusBadge.textContent = `Okundu ama Hatalı TC: ${adaylar[0]}`;
+          statusBadge.style.color = "#fbbf24";
         }
       } catch (err) {}
 
@@ -331,40 +292,28 @@
     }
 
     function getHistory() { try { return JSON.parse(localStorage.getItem('tc_history_local') || '[]'); } catch { return []; } }
-
     function saveToHistory(tc) {
       let list = getHistory();
       let existingItem = list.find(item => item.tc === tc);
       let preservedName = existingItem ? existingItem.name : "";
       list = list.filter(item => item.tc !== tc);
-      
       const now = new Date();
       const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
       const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
       list.unshift({ tc: tc, date: dateStr, time: timeStr, name: preservedName, timestamp: Date.now() });
       if (list.length > 50) list = list.slice(0, 50);
-      localStorage.setItem('tc_history_local', JSON.stringify(list));
-      renderHistory();
+      localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory();
     }
 
     window.editName = function(tc) {
-      let list = getHistory();
-      let index = list.findIndex(item => item.tc === tc);
+      let list = getHistory(); let index = list.findIndex(item => item.tc === tc);
       if (index > -1) {
         let newName = prompt(`TC: ${tc}\nİsim - Soyisim giriniz:`, list[index].name || "");
-        if (newName !== null) {
-          list[index].name = newName.trim();
-          localStorage.setItem('tc_history_local', JSON.stringify(list));
-          renderHistory();
-        }
+        if (newName !== null) { list[index].name = newName.trim(); localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory(); }
       }
     };
 
-    window.loadFromHistory = function(tc) {
-      stopCamera(); showQrCode(tc);
-      statusBadge.textContent = "Geçmişten Yüklendi!"; statusBadge.style.color = "#38bdf8";
-    };
+    window.loadFromHistory = function(tc) { stopCamera(); showQrCode(tc); statusBadge.textContent = "Geçmişten Yüklendi!"; statusBadge.style.color = "#38bdf8"; };
 
     function renderHistory() {
       const list = getHistory(); historyList.innerHTML = '';
@@ -382,12 +331,9 @@
       });
     }
 
-    document.getElementById('clear-history-btn').addEventListener('click', () => {
-      if (confirm("Geçmiş cihazdan silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); }
-    });
+    document.getElementById('clear-history-btn').addEventListener('click', () => { if (confirm("Geçmiş cihazdan silinsin mi?")) { localStorage.removeItem('tc_history_local'); renderHistory(); } });
 
-    renderHistory();
-    initOCR();
+    renderHistory(); initOCR();
   </script>
 </body>
 </html>
