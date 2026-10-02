@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TC Tarayıcı (GPU Hızlandırmalı)</title>
+  <title>TC Tarayıcı (Yapay Zeka Destekli)</title>
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
@@ -37,7 +37,7 @@
     
     .guide-corners {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 90%; height: 60px; z-index: 3;
+      width: 90%; height: 50px; z-index: 3;
       background:
         linear-gradient(to right, #38bdf8 3px, transparent 3px) 0 0,
         linear-gradient(to bottom, #38bdf8 3px, transparent 3px) 0 0,
@@ -113,7 +113,7 @@
       try {
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
-          tessedit_char_whitelist: '0123456789 ',
+          tessedit_char_whitelist: '0123456789',
           tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE 
         });
         startCamera();
@@ -173,6 +173,60 @@
       return d[9] === ((tekler * 7 - ciftler + 10) % 10) && d[10] === (d.slice(0, 10).reduce((a, b) => a + b, 0) % 10);
     }
 
+    // --- YAPAY ZEKA DESTEKLİ NİHAİ GÖRÜNTÜ İŞLEME MOTORU ---
+    function applyUltimateFilter(ctx, width, height) {
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const d = imgData.data;
+      const grays = new Uint8Array(width * height);
+      let minB = 255, maxB = 0;
+
+      // 1. ADIM: Kırmızı Çizgi ve Mavi Hologram Yok Edici (RGB MAX Filtresi)
+      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+        // Piksellerdeki en baskın rengi al. Bu sayede kırmızı/renkli alanlar beyaza dönüşüp kaybolur. Siyah yazı kapkara kalır.
+        let g = Math.max(d[i], d[i+1], d[i+2]);
+        grays[p] = g;
+        if (g < minB) minB = g;
+        if (g > maxB) maxB = g;
+      }
+
+      // 2. ADIM: Güvenli Kenar Tespiti ile Zemin Analizi
+      let edgeSum = 0, edgeCount = 0;
+      for (let x = 0; x < width; x++) {
+        edgeSum += grays[x]; // Üst kenar
+        edgeSum += grays[(height - 1) * width + x]; // Alt kenar
+        edgeCount += 2;
+      }
+      for (let y = 0; y < height; y++) {
+        edgeSum += grays[y * width]; // Sol kenar
+        edgeSum += grays[y * width + width - 1]; // Sağ kenar
+        edgeCount += 2;
+      }
+      let bgAvg = edgeSum / edgeCount;
+      
+      // Eğer sadece çerçevenin dış kenarları koyuysa, bu %100 bir saattir/ekrandır. 
+      // Odanın karanlık olması beyaz kimliği etkilemez çünkü kimliğin kenarları yine de beyaz kalacaktır.
+      let isDarkMode = bgAvg < 120; 
+
+      if (maxB - minB < 20) { minB = 0; maxB = 255; }
+
+      // 3. ADIM: Kontrast Gerdirme ve Akıllı Tersine Çevirme
+      for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+        let stretched = ((grays[p] - minB) / (maxB - minB)) * 255;
+
+        // Ekran modundaysa (Koyu zemin/Beyaz yazı), renkleri Tesseract'ın anlayacağı şekle (Beyaz zemin/Siyah yazı) ters çevir
+        if (isDarkMode) {
+          stretched = 255 - stretched;
+        }
+
+        // Pürüzsüz Kontrast Eğrisi (Yazıları keskinleştir ama tırtıklandırma)
+        if (stretched < 100) stretched = Math.max(0, stretched - 40); // Siyahlar daha koyu
+        else if (stretched > 150) stretched = Math.min(255, stretched + 40); // Beyazlar daha parlak
+
+        d[i] = d[i+1] = d[i+2] = stretched;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
     async function scanFrame() {
       if (!isScanning) return;
       const video = document.getElementById('camera');
@@ -187,28 +241,24 @@
         
         const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
         
-        const boxW = cW * 0.90, boxH = 60;
+        // Kutu yüksekliği güvenli okuma için 50px
+        const boxW = cW * 0.90, boxH = 50;
         const boxX = (cW - boxW) / 2, boxY = (cH * 0.40) - (boxH / 2);
 
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
         let cropW = boxW / scale, cropH = boxH / scale;
 
-        // GPU Hızlandırması & Akıllı Boyutlandırma (Çok Büyük Resimleri Küçült)
-        const MAX_W = 800; // Tesseract'ın en hızlı okuduğu ideal genişlik
-        let targetW = cropW;
-        let targetH = cropH;
-
-        if (targetW > MAX_W) {
-            let ratio = MAX_W / targetW;
-            targetW = MAX_W;
-            targetH = targetH * ratio;
-        } else if (targetW < 400) {
-            let ratio = 400 / targetW;
-            targetW = 400;
+        // İşlemciyi yormamak için maksimum genişliği sınırla
+        let targetW = cropW * 2;
+        let targetH = cropH * 2;
+        if (targetW > 900) {
+            let ratio = 900 / targetW;
+            targetW = 900;
             targetH = targetH * ratio;
         }
 
-        const padding = 24;
+        // Kenarlardaki beyaz boşluk Tesseract için hayat kurtarır
+        const padding = 30;
         const finalW = targetW + (padding * 2);
         const finalH = targetH + (padding * 2);
         
@@ -216,36 +266,21 @@
         canvas.width = finalW; canvas.height = finalH;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
+        // Önce bembeyaz zemin oluştur
         ctx.fillStyle = '#ffffff'; 
         ctx.fillRect(0, 0, finalW, finalH);
         
-        // GPU Filtresi: Kontrast artır, Gri tonla (Hızı 10x artırır)
-        ctx.filter = 'grayscale(100%) contrast(150%)';
+        // Pürüzsüz büyütme (Anti-aliasing aktif)
         ctx.imageSmoothingEnabled = true;
         ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, targetW, targetH);
-        ctx.filter = 'none';
 
-        // Işık hızıyla karanlık mod (saat ekranı) tespiti (Örnekleme yöntemi)
-        const imgData = ctx.getImageData(padding, padding, targetW, targetH);
-        const d = imgData.data;
-        let sum = 0, count = 0;
-        for (let i = 0; i < d.length; i += 40) { // Her 10 pikselden 1'ine bak (Çok Hızlı)
-            sum += d[i];
-            count++;
-        }
-        
-        // Eğer zemin karanlıksa (Ekran Modu) GPU ile renkleri tersine çevir
-        if ((sum / count) < 110) {
-            ctx.globalCompositeOperation = 'difference';
-            ctx.fillStyle = 'white';
-            ctx.fillRect(padding, padding, targetW, targetH);
-            ctx.globalCompositeOperation = 'source-over';
-        }
+        // Yeni Nesil Motoru Çalıştır
+        applyUltimateFilter(ctx, finalW, finalH);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
         const rawText = text.replace(/[^0-9]/g, '').trim();
         
-        document.getElementById('live-debug').textContent = rawText.length > 2 ? rawText.substring(0,11) : "Hizalanıyor...";
+        document.getElementById('live-debug').textContent = rawText.length > 3 ? rawText.substring(0,11) : "Netleştiriliyor";
 
         let adayTc = null;
         for (let i = 0; i <= rawText.length - 11; i++) {
@@ -263,14 +298,13 @@
       } catch (err) {}
 
       isProcessing = false; 
-      // Hızlandırılmış dönüş (Donanım rahatladığı için hızlı geçiş)
-      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 10); 
+      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 50); 
     }
 
     function startContinuousScan() {
       isScanning = true; isProcessing = false;
       setStatus("Tarama Aktif", "#38bdf8");
-      document.getElementById('live-debug').textContent = "Hizalanıyor...";
+      document.getElementById('live-debug').textContent = "Hizalanıyor";
       requestAnimationFrame(scanFrame);
     }
 
