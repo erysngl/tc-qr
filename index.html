@@ -31,7 +31,7 @@
     .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 420px; border-radius: 20px; overflow: hidden; border: 1px solid #334155; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
     video { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    .guide-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 0 9999px rgba(15, 23, 42, 0.85); pointer-events: none; z-index: 2; clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 45%, 95% 45%, 95% 55%, 5% 55%, 5% 100%, 100% 100%, 100% 0%); }
+    .guide-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 0 9999px rgba(15, 23, 42, 0.85); pointer-events: none; z-index: 2; clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 44%, 95% 44%, 95% 56%, 5% 56%, 5% 100%, 100% 100%, 100% 0%); }
     
     .guide-corners {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -51,7 +51,7 @@
     .guide-laser { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(239, 68, 68, 0.8); box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); transform: translateY(-50%); animation: pulseLaser 1.5s infinite; }
     @keyframes pulseLaser { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
 
-    #live-debug { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #cbd5e1; font-family: monospace; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; text-align: center; white-space: nowrap; z-index: 50; backdrop-filter: blur(4px); }
+    #live-debug { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #cbd5e1; font-family: monospace; font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 8px; text-align: center; white-space: nowrap; z-index: 50; backdrop-filter: blur(4px); }
 
     #torch-btn { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 20px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.2s; display: none; }
 
@@ -110,8 +110,7 @@
         ocrWorker = await Tesseract.createWorker('eng');
         await ocrWorker.setParameters({
           tessedit_char_whitelist: '0123456789 ',
-          // Tek satırda zorlanmayı önlemek için Blok Modu
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK 
+          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE 
         });
         startCamera();
       } catch (err) { setStatus("Sistem Hatası", "#ef4444"); }
@@ -160,46 +159,41 @@
       document.getElementById('torch-btn').style.color = isTorchOn ? "#000" : "#fff";
     });
 
-    // ONARILMIŞ TC DOĞRULAMA ALGORİTMASI (Negatif Modulo Hatası Giderildi)
     function tcDogrula(tc) {
       if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
       const d = tc.split('').map(Number);
       const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
       const ciftler = d[1] + d[3] + d[5] + d[7];
-      
       let h10 = (tekler * 7 - ciftler) % 10;
-      if (h10 < 0) h10 += 10; // Negatif çıkma ihtimaline karşı %100 koruma
+      if (h10 < 0) h10 += 10; 
       if (d[9] !== h10) return false;
-      
       let h11 = d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
       return d[10] === h11;
     }
 
-    // STABİL VE YUMUŞAK FİLTRE (Pikselleri Bozan Algoritmalar Kaldırıldı)
-    function applyCleanFilter(ctx, width, height) {
+    // YENİ: Çiçek Deseni Yok Edici + Ekran Uyumluluk Filtresi
+    function applyEradicatorFilter(ctx, width, height) {
       const imgData = ctx.getImageData(0, 0, width, height);
       const data = imgData.data;
       let total = 0;
 
-      // 1. Adım: Kırmızı çizgileri ve hologramları görünmez yapmak için Kırmızı (R) kanalı ağırlıklı tonlama
+      // 1. Zemin Analizi: Kameranın neye baktığını anla
       for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i+1], b = data[i+2];
-        let gray = (r * 0.7) + (g * 0.2) + (b * 0.1); 
-        data[i] = data[i+1] = data[i+2] = gray;
+        let gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
         total += gray;
       }
+      let isDarkMode = (total / (width * height)) < 110; 
 
-      let avg = total / (width * height);
-      let isDarkMode = avg < 100; // Saat ekranı tespiti
-
-      // 2. Adım: Sadece hafif kontrast ve gerekiyorsa tersine çevirme (Pikseller pürüzsüz kalır)
+      // 2. Çiçek Silici ve Keskinleştirme
       for (let i = 0; i < data.length; i += 4) {
-        let val = data[i];
-        if (isDarkMode) val = 255 - val;
+        // Math.max komutu kırmızı, pembe ve mavi çiçek hologramlarını BEYAZ (255) olarak algılamayı sağlar. Siyah yazı ise etkilenmez.
+        let maxColor = Math.max(data[i], data[i+1], data[i+2]);
         
-        // Pürüzsüz Kontrast
-        val = (val - 128) * 1.5 + 128;
-        val = Math.max(0, Math.min(255, val));
+        // Eğer bir akıllı saat ekranı okunuyorsa zemin renklerini ters çevir
+        if (isDarkMode) maxColor = 255 - maxColor;
+        
+        // Çok keskin (Siyah ve Beyaz) eşikleme yap. Tesseract'ın en başarılı okuduğu format.
+        let val = maxColor < 140 ? 0 : 255;
         data[i] = data[i+1] = data[i+2] = val;
       }
       ctx.putImageData(imgData, 0, 0);
@@ -219,9 +213,11 @@
         
         const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
         
-        // Kutu yüksekliği 65px (Tam kararında genişletildi)
-        const boxW = cW * 0.90, boxH = 65;
-        const boxX = (cW - boxW) / 2, boxY = (cH * 0.40) - (boxH / 2);
+        // Kutu yüksekliği güvenli okuma için 70px yapıldı.
+        const boxW = cW * 0.90, boxH = 70;
+        
+        // KOORDİNAT HATASI DÜZELTİLDİ: CSS ile JS merkezi artık ikisinde de tam %50 (0.50)!
+        const boxX = (cW - boxW) / 2, boxY = (cH * 0.50) - (boxH / 2);
 
         const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
         let cropW = boxW / scale, cropH = boxH / scale;
@@ -229,7 +225,7 @@
         const targetW = cropW * 2;
         const targetH = cropH * 2;
         
-        const padding = 30; // Etraftaki beyazlık Tesseract için çok önemlidir
+        const padding = 30; // OCR'ın rahat etmesi için beyaz çerçeve
         const finalW = targetW + (padding * 2);
         const finalH = targetH + (padding * 2);
         
@@ -240,12 +236,11 @@
         ctx.fillStyle = '#ffffff'; 
         ctx.fillRect(0, 0, finalW, finalH);
         
-        // Anti-aliasing aktif kalsın ki OLED/Saat ekranlarındaki pikseller parçalanmasın
-        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingEnabled = false; 
         ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, targetW, targetH);
 
-        // Stabil filtreyi uygula
-        applyCleanFilter(ctx, finalW, finalH);
+        // Arka Plan Yok Edici Filtre
+        applyEradicatorFilter(ctx, finalW, finalH);
 
         const { data: { text } } = await ocrWorker.recognize(canvas);
         const rawText = text.replace(/[^0-9]/g, '').trim();
@@ -268,7 +263,7 @@
       } catch (err) {}
 
       isProcessing = false; 
-      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 50); 
+      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 30); 
     }
 
     function startContinuousScan() {
