@@ -1,328 +1,282 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>TC Tarayıcı</title>
-
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
-    body { background: #0f172a; color: #f8fafc; padding: 70px 16px 36px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overscroll-behavior-y: contain; }
-
-    #status-badge { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateZ(0); padding: 10px 20px; background: rgba(15, 23, 42, 0.90); backdrop-filter: blur(8px); border: 1px solid #334155; border-radius: 20px; font-size: 13px; font-weight: 700; text-align: center; color: #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.4); z-index: 1000; letter-spacing: 0.5px; transition: all 0.3s ease; }
-
-    #result-box { width: 100%; max-width: 400px; background: #1e293b; border: 1px solid #10b981; border-radius: 16px; padding: 24px; margin-bottom: 16px; text-align: center; display: none; animation: popIn 0.3s forwards; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15); }
-    @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    
-    #detected-tc { font-size: 32px; font-weight: 900; letter-spacing: 5px; color: #10b981; margin-bottom: 16px; }
-    #qrcode { display: inline-flex; padding: 12px; background: #fff; border-radius: 12px; }
-
-    #restart-btn { display: none; width: 100%; max-width: 400px; padding: 16px; margin-bottom: 16px; font-size: 15px; font-weight: 700; background: #3b82f6; color: #fff; border: none; border-radius: 12px; cursor: pointer; z-index: 10; letter-spacing: 1px; transition: background 0.2s; }
-    #restart-btn:active { background: #2563eb; }
-    
-    .camera-wrapper { position: relative; width: 100%; max-width: 400px; height: 420px; border-radius: 20px; overflow: hidden; border: 1px solid #334155; background: #000; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
-    video { width: 100%; height: 100%; object-fit: cover; display: block; }
-    
-    .guide-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 0 9999px rgba(15, 23, 42, 0.85); pointer-events: none; z-index: 2; clip-path: polygon(0% 0%, 0% 100%, 5% 100%, 5% 44%, 95% 44%, 95% 56%, 5% 56%, 5% 100%, 100% 100%, 100% 0%); }
-    
-    .guide-corners {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 90%; height: 65px; z-index: 3;
-      background:
-        linear-gradient(to right, #38bdf8 3px, transparent 3px) 0 0,
-        linear-gradient(to bottom, #38bdf8 3px, transparent 3px) 0 0,
-        linear-gradient(to left, #38bdf8 3px, transparent 3px) 100% 0,
-        linear-gradient(to bottom, #38bdf8 3px, transparent 3px) 100% 0,
-        linear-gradient(to right, #38bdf8 3px, transparent 3px) 0 100%,
-        linear-gradient(to top, #38bdf8 3px, transparent 3px) 0 100%,
-        linear-gradient(to left, #38bdf8 3px, transparent 3px) 100% 100%,
-        linear-gradient(to top, #38bdf8 3px, transparent 3px) 100% 100%;
-      background-repeat: no-repeat; background-size: 16px 16px; pointer-events: none;
-    }
-    
-    .guide-laser { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(239, 68, 68, 0.8); box-shadow: 0 0 8px rgba(239, 68, 68, 0.8); transform: translateY(-50%); animation: pulseLaser 1.5s infinite; }
-    @keyframes pulseLaser { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-
-    #live-debug { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #cbd5e1; font-family: monospace; font-size: 14px; font-weight: 600; padding: 6px 12px; border-radius: 8px; text-align: center; white-space: nowrap; z-index: 50; backdrop-filter: blur(4px); }
-
-    #torch-btn { position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-size: 20px; cursor: pointer; z-index: 20; align-items: center; justify-content: center; backdrop-filter: blur(8px); transition: all 0.2s; display: none; }
-
-    .history-card { width: 100%; max-width: 400px; margin-top: 16px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .history-header h4 { font-size: 14px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-    .clear-btn { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .history-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; padding-right: 4px; }
-    .history-item { background: #0f172a; padding: 14px; border-radius: 12px; border: 1px solid #334155; display: flex; flex-direction: column; gap: 8px; }
-    .history-row-top { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .history-tc { font-weight: 800; font-size: 17px; color: #e2e8f0; letter-spacing: 1px; }
-    .history-date { font-size: 12px; color: #64748b; font-weight: 500; }
-    .name-btn { align-self: flex-start; background: transparent; border: none; color: #38bdf8; font-size: 13px; font-weight: 600; padding: 0; cursor: pointer; }
-    .name-btn.has-name { color: #10b981; }
-    .empty-history { font-size: 13px; color: #64748b; text-align: center; padding: 20px 0; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>TC Tarayıcı</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin:0;padding:0}
+body{background:#0f172a;color:#f8fafc;padding:70px 16px 36px;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+#badge{position:fixed;top:12px;left:50%;transform:translateX(-50%);padding:10px 20px;background:rgba(15,23,42,.92);border:1px solid #334155;border-radius:20px;font-size:13px;font-weight:700;color:#94a3b8;z-index:1000;white-space:nowrap}
+#result{width:100%;max-width:400px;background:#1e293b;border:2px solid #10b981;border-radius:16px;padding:20px;margin-bottom:12px;text-align:center;display:none}
+#tc{font-size:34px;font-weight:900;letter-spacing:4px;color:#10b981;margin-bottom:14px}
+#qr{display:inline-flex;padding:12px;background:#fff;border-radius:12px}
+#again{display:none;width:100%;max-width:400px;padding:20px;margin-bottom:12px;font-size:17px;font-weight:800;background:#3b82f6;color:#fff;border:0;border-radius:12px}
+.cam{position:relative;width:100%;max-width:400px;height:440px;border-radius:20px;overflow:hidden;border:1px solid #334155;background:#000}
+video{width:100%;height:100%;object-fit:cover;display:block}
+.guide{position:absolute;left:3%;right:3%;top:35%;height:30%;border:2px solid #38bdf8;border-radius:10px;box-shadow:0 0 0 9999px rgba(15,23,42,.55);pointer-events:none}
+#dbg{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);color:#cbd5e1;font:600 14px monospace;padding:6px 12px;border-radius:8px;white-space:nowrap}
+#sharp{position:absolute;bottom:0;left:0;height:4px;width:0;background:#10b981;transition:width .15s}
+#torch{position:absolute;top:14px;right:14px;width:48px;height:48px;border-radius:50%;background:rgba(15,23,42,.55);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:22px;display:none;align-items:center;justify-content:center}
+.card{width:100%;max-width:400px;margin-top:14px;background:#1e293b;border:1px solid #334155;border-radius:16px;padding:16px}
+.manual{display:flex;gap:8px}
+.manual input{flex:1;min-width:0;padding:12px;font-size:18px;letter-spacing:2px;background:#0f172a;color:#fff;border:1px solid #334155;border-radius:10px}
+.manual button{padding:0 16px;font-weight:700;background:#334155;color:#fff;border:0;border-radius:10px}
+.hh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.hh h4{font-size:13px;color:#94a3b8;letter-spacing:1px}
+.clr{background:transparent;color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600}
+ul{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto}
+.it{background:#0f172a;padding:12px;border-radius:12px;border:1px solid #334155}
+.top{display:flex;justify-content:space-between;align-items:center}
+.htc{font-weight:800;font-size:17px;letter-spacing:1px}.hd{font-size:12px;color:#64748b}
+.nm{background:none;border:0;color:#38bdf8;font-size:13px;font-weight:600;padding:6px 0 0}.nm.has{color:#10b981}
+.empty{font-size:13px;color:#64748b;text-align:center;padding:16px 0}
+</style>
 </head>
 <body>
+<div id="badge">Başlatılıyor</div>
+<div id="result"><div id="tc"></div><div id="qr"></div></div>
+<button id="again">YENİ TARAMA</button>
 
-  <div id="status-badge">Başlatılıyor</div>
+<div class="cam" id="cam">
+  <video id="video" autoplay playsinline muted></video>
+  <button id="torch">🔦</button>
+  <div class="guide"></div>
+  <div id="dbg">Kamera bekleniyor</div>
+  <div id="sharp"></div>
+</div>
 
-  <div id="result-box">
-    <div id="detected-tc"></div>
-    <div id="qrcode"></div>
-  </div>
+<div class="card manual">
+  <input id="man" inputmode="numeric" maxlength="11" placeholder="Elle TC gir">
+  <button id="manbtn">QR</button>
+</div>
 
-  <button id="restart-btn">YENİ TARAMA</button>
+<div class="card">
+  <div class="hh"><h4>KAYIT GEÇMİŞİ</h4><button id="clr" class="clr">Temizle</button></div>
+  <ul id="hist"></ul>
+</div>
 
-  <div class="camera-wrapper" id="cam-wrapper">
-    <video id="camera" autoplay playsinline muted></video>
-    <button id="torch-btn">🔦</button>
-    <div class="guide-overlay"></div>
-    <div class="guide-corners">
-      <div class="guide-laser"></div>
-    </div>
-    <div id="live-debug">Kamera Bekleniyor</div>
-  </div>
+<script>
+/* ============ AYARLAR ============ */
+const CFG = {
+  W: 720,          // OCR'a giden şerit genişliği (px). Düşük = hızlı, yüksek = detaylı
+  VOTE: 2,         // Aynı TC kaç ayrı karede okunmalı (1 = en hızlı, 2 = güvenli)
+  VOTE_MS: 6000,   // Oyların geçerlilik süresi
+  WORKERS: 2,      // Paralel OCR işçisi
+  CONTRAST: 14     // Yerel eşik farkı (düşük ışıkta düşür, güneşte artır)
+};
+const BASE = new URL('lib/', location.href).href;
+const $ = id => document.getElementById(id);
 
-  <canvas id="snapshot" style="display: none;"></canvas>
+/* ============ KÜTÜPHANE YÜKLEME (önce yerel, yoksa CDN) ============ */
+const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
+const lib = async (local, cdn) => { try { await load(local); } catch { await load(cdn); } };
 
-  <div class="history-card">
-    <div class="history-header">
-      <h4>Kayıt Geçmişi</h4>
-      <button id="clear-history-btn" class="clear-btn">Temizle</button>
-    </div>
-    <ul id="history-list" class="history-list"></ul>
-  </div>
+let sched = null, track = null, torchOn = false, scanning = false, inflight = 0, peak = 1, votes = new Map(), wake = null;
+const c1 = document.createElement('canvas'), x1 = c1.getContext('2d', { willReadFrequently: true });
 
-  <script>
-    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js', { scope: './' }).catch(()=>{}); }); }
+function status(msg, col) { const b = $('badge'); b.textContent = msg; b.style.color = col || '#94a3b8'; b.style.borderColor = col || '#334155'; }
 
-    let ocrWorker = null, videoTrack = null, isTorchOn = false, isScanning = false, isProcessing = false;
-
-    async function initOCR() {
-      try {
-        ocrWorker = await Tesseract.createWorker('eng');
-        await ocrWorker.setParameters({
-          tessedit_char_whitelist: '0123456789 ',
-          tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE 
-        });
-        startCamera();
-      } catch (err) { setStatus("Sistem Hatası", "#ef4444"); }
-    }
-
-    function setStatus(msg, color = "#94a3b8") {
-      const badge = document.getElementById('status-badge');
-      badge.textContent = msg; badge.style.color = color; badge.style.borderColor = color !== "#94a3b8" ? color : "#334155";
-    }
-
-    function startCamera() {
-      document.getElementById('cam-wrapper').style.display = 'block';
-      document.getElementById('result-box').style.display = 'none';
-      document.getElementById('restart-btn').style.display = 'none';
-      setStatus("Kamera Hazırlanıyor");
-      
-      navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 }, advanced: [{ focusMode: 'continuous' }] }
-      }).then(async stream => { 
-        const video = document.getElementById('camera');
-        video.srcObject = stream; 
-        videoTrack = stream.getVideoTracks()[0];
-        
-        setTimeout(async () => {
-          const cap = videoTrack.getCapabilities ? videoTrack.getCapabilities() : {};
-          if (cap.torch) document.getElementById('torch-btn').style.display = 'flex';
-        }, 500);
-        video.addEventListener('loadeddata', () => { startContinuousScan(); });
-      }).catch(() => { setStatus("Kamera İzni Reddedildi", "#ef4444"); });
-    }
-
-    function stopCamera() {
-      isScanning = false;
-      const video = document.getElementById('camera');
-      if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; }
-      videoTrack = null; isTorchOn = false;
-      document.getElementById('cam-wrapper').style.display = 'none';
-      document.getElementById('restart-btn').style.display = 'block';
-    }
-
-    document.getElementById('torch-btn').addEventListener('click', async () => {
-      if (!videoTrack) return;
-      isTorchOn = !isTorchOn;
-      try { await videoTrack.applyConstraints({ advanced: [{ torch: isTorchOn }] }); } catch (e) {}
-      document.getElementById('torch-btn').style.background = isTorchOn ? "rgba(255, 255, 255, 0.9)" : "rgba(15, 23, 42, 0.5)";
-      document.getElementById('torch-btn').style.color = isTorchOn ? "#000" : "#fff";
-    });
-
-    function tcDogrula(tc) {
-      if (!/^[1-9][0-9]{10}$/.test(tc)) return false;
-      const d = tc.split('').map(Number);
-      const tekler = d[0] + d[2] + d[4] + d[6] + d[8];
-      const ciftler = d[1] + d[3] + d[5] + d[7];
-      let h10 = (tekler * 7 - ciftler) % 10;
-      if (h10 < 0) h10 += 10; 
-      if (d[9] !== h10) return false;
-      let h11 = d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
-      return d[10] === h11;
-    }
-
-    // YENİ: Çiçek Deseni Yok Edici + Ekran Uyumluluk Filtresi
-    function applyEradicatorFilter(ctx, width, height) {
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const data = imgData.data;
-      let total = 0;
-
-      // 1. Zemin Analizi: Kameranın neye baktığını anla
-      for (let i = 0; i < data.length; i += 4) {
-        let gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114);
-        total += gray;
-      }
-      let isDarkMode = (total / (width * height)) < 110; 
-
-      // 2. Çiçek Silici ve Keskinleştirme
-      for (let i = 0; i < data.length; i += 4) {
-        // Math.max komutu kırmızı, pembe ve mavi çiçek hologramlarını BEYAZ (255) olarak algılamayı sağlar. Siyah yazı ise etkilenmez.
-        let maxColor = Math.max(data[i], data[i+1], data[i+2]);
-        
-        // Eğer bir akıllı saat ekranı okunuyorsa zemin renklerini ters çevir
-        if (isDarkMode) maxColor = 255 - maxColor;
-        
-        // Çok keskin (Siyah ve Beyaz) eşikleme yap. Tesseract'ın en başarılı okuduğu format.
-        let val = maxColor < 140 ? 0 : 255;
-        data[i] = data[i+1] = data[i+2] = val;
-      }
-      ctx.putImageData(imgData, 0, 0);
-    }
-
-    async function scanFrame() {
-      if (!isScanning) return;
-      const video = document.getElementById('camera');
-      if (isProcessing || !video.videoWidth) { requestAnimationFrame(scanFrame); return; }
-      isProcessing = true;
-
-      try {
-        const vW = video.videoWidth, vH = video.videoHeight;
-        const camWrapper = document.getElementById('cam-wrapper');
-        const cW = camWrapper.clientWidth, cH = camWrapper.clientHeight;
-        const scale = Math.max(cW / vW, cH / vH);
-        
-        const offsetX = ((vW * scale) - cW) / 2, offsetY = ((vH * scale) - cH) / 2;
-        
-        // Kutu yüksekliği güvenli okuma için 70px yapıldı.
-        const boxW = cW * 0.90, boxH = 70;
-        
-        // KOORDİNAT HATASI DÜZELTİLDİ: CSS ile JS merkezi artık ikisinde de tam %50 (0.50)!
-        const boxX = (cW - boxW) / 2, boxY = (cH * 0.50) - (boxH / 2);
-
-        const cropX = (boxX + offsetX) / scale, cropY = (boxY + offsetY) / scale;
-        let cropW = boxW / scale, cropH = boxH / scale;
-
-        const targetW = cropW * 2;
-        const targetH = cropH * 2;
-        
-        const padding = 30; // OCR'ın rahat etmesi için beyaz çerçeve
-        const finalW = targetW + (padding * 2);
-        const finalH = targetH + (padding * 2);
-        
-        const canvas = document.getElementById('snapshot');
-        canvas.width = finalW; canvas.height = finalH;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
-        ctx.fillStyle = '#ffffff'; 
-        ctx.fillRect(0, 0, finalW, finalH);
-        
-        ctx.imageSmoothingEnabled = false; 
-        ctx.drawImage(video, cropX, cropY, cropW, cropH, padding, padding, targetW, targetH);
-
-        // Arka Plan Yok Edici Filtre
-        applyEradicatorFilter(ctx, finalW, finalH);
-
-        const { data: { text } } = await ocrWorker.recognize(canvas);
-        const rawText = text.replace(/[^0-9]/g, '').trim();
-        
-        document.getElementById('live-debug').textContent = rawText.length > 2 ? rawText.substring(0,20) : "Hizalanıyor...";
-
-        let adayTc = null;
-        for (let i = 0; i <= rawText.length - 11; i++) {
-          let dilim = rawText.substring(i, i + 11);
-          if (tcDogrula(dilim)) { adayTc = dilim; break; }
-        }
-
-        if (adayTc) {
-          stopCamera();
-          showQrCode(adayTc); saveToHistory(adayTc);
-          setStatus("✓ Doğrulandı", "#10b981");
-          if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]); 
-          isProcessing = false; return; 
-        }
-      } catch (err) {}
-
-      isProcessing = false; 
-      if (isScanning) setTimeout(() => requestAnimationFrame(scanFrame), 30); 
-    }
-
-    function startContinuousScan() {
-      isScanning = true; isProcessing = false;
-      setStatus("Tarama Aktif", "#38bdf8");
-      document.getElementById('live-debug').textContent = "Hizalanıyor...";
-      requestAnimationFrame(scanFrame);
-    }
-
-    document.getElementById('restart-btn').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); startCamera(); });
-
-    function showQrCode(tc) {
-      document.getElementById('detected-tc').textContent = tc; 
-      document.getElementById('qrcode').innerHTML = '';
-      new QRCode(document.getElementById('qrcode'), { text: tc, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M, colorDark : "#0f172a", colorLight : "#ffffff" });
-      document.getElementById('result-box').style.display = 'block'; 
-    }
-
-    function getHistory() { try { return JSON.parse(localStorage.getItem('tc_history_local') || '[]'); } catch { return []; } }
-    function saveToHistory(tc) {
-      let list = getHistory();
-      let existingItem = list.find(item => item.tc === tc);
-      let preservedName = existingItem ? existingItem.name : "";
-      list = list.filter(item => item.tc !== tc);
-      const now = new Date();
-      list.unshift({ tc: tc, date: `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`, time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, name: preservedName, timestamp: Date.now() });
-      if (list.length > 50) list = list.slice(0, 50);
-      localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory();
-    }
-
-    window.editName = function(tc) {
-      let list = getHistory(); let index = list.findIndex(item => item.tc === tc);
-      if (index > -1) {
-        let newName = prompt(`TC: ${tc}\nİsim - Soyisim giriniz:`, list[index].name || "");
-        if (newName !== null) { list[index].name = newName.trim(); localStorage.setItem('tc_history_local', JSON.stringify(list)); renderHistory(); }
-      }
-    };
-    
-    window.loadFromHistory = function(tc) { stopCamera(); showQrCode(tc); setStatus("Geçmiş Kaydı", "#94a3b8"); };
-
-    function renderHistory() {
-      const list = getHistory(); const hl = document.getElementById('history-list'); hl.innerHTML = '';
-      if (list.length === 0) { hl.innerHTML = '<li class="empty-history">Kayıt bulunamadı.</li>'; return; }
-      list.forEach(item => {
-        const li = document.createElement('li'); li.className = 'history-item';
-        const nameBtnClass = item.name ? "name-btn has-name" : "name-btn";
-        const nameBtnText = item.name ? item.name : "İsim Ekle +";
-        li.innerHTML = `
-          <div class="history-row-top" onclick="loadFromHistory('${item.tc}')">
-            <span class="history-tc">${item.tc}</span><span class="history-date">${item.date} ${item.time}</span>
-          </div>
-          <button class="${nameBtnClass}" onclick="editName('${item.tc}')">${nameBtnText}</button>`;
-        hl.appendChild(li);
+async function init() {
+  try {
+    await Promise.all([
+      lib(BASE + 'tesseract.min.js', 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'),
+      lib(BASE + 'qrcode.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js').catch(() => {})
+    ]);
+    const local = await fetch(BASE + 'eng.traineddata.gz', { method: 'HEAD' }).then(r => r.ok).catch(() => false);
+    const opts = local ? { workerPath: BASE + 'worker.min.js', corePath: BASE, langPath: BASE, gzip: true } : {};
+    sched = Tesseract.createScheduler();
+    for (let i = 0; i < CFG.WORKERS; i++) {
+      const w = await Tesseract.createWorker('eng', 1, opts);
+      await w.setParameters({
+        tessedit_char_whitelist: '0123456789',
+        tessedit_pageseg_mode: '11',
+        user_defined_dpi: '300'
       });
+      sched.addWorker(w);
     }
+    startCamera();
+  } catch (e) { status('OCR yüklenemedi: lib/ dosyalarını kontrol et', '#ef4444'); }
+}
 
-    document.getElementById('clear-history-btn').addEventListener('click', () => { if (confirm("Tüm kayıtlar silinecek. Onaylıyor musunuz?")) { localStorage.removeItem('tc_history_local'); renderHistory(); } });
+/* ============ KAMERA ============ */
+async function startCamera() {
+  $('cam').style.display = 'block'; $('result').style.display = 'none'; $('again').style.display = 'none';
+  status('Kamera hazırlanıyor');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }, audio: false
+    });
+    const v = $('video'); v.srcObject = stream; track = stream.getVideoTracks()[0];
+    try { await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }, { exposureMode: 'continuous' }, { whiteBalanceMode: 'continuous' }] }); } catch {}
+    const cap = track.getCapabilities ? track.getCapabilities() : {};
+    if (cap.torch) $('torch').style.display = 'flex';
+    try { wake = await navigator.wakeLock.request('screen'); } catch {}
+    if (v.readyState >= 2) begin(); else v.addEventListener('loadeddata', begin, { once: true });
+  } catch { status('Kamera izni yok', '#ef4444'); }
+}
+function begin() { scanning = true; votes.clear(); peak = 1; status('Tarama aktif', '#38bdf8'); loop(); }
+function stopCamera() {
+  scanning = false; const v = $('video');
+  if (v.srcObject) v.srcObject.getTracks().forEach(t => t.stop()); v.srcObject = null;
+  track = null; torchOn = false; try { wake && wake.release(); } catch {}
+  $('cam').style.display = 'none'; $('again').style.display = 'block';
+}
+document.addEventListener('visibilitychange', async () => { if (!document.hidden && scanning) { try { wake = await navigator.wakeLock.request('screen'); } catch {} } });
+$('torch').onclick = async () => {
+  if (!track) return; torchOn = !torchOn;
+  try { await track.applyConstraints({ advanced: [{ torch: torchOn }] }); } catch {}
+  $('torch').style.background = torchOn ? 'rgba(255,255,255,.9)' : 'rgba(15,23,42,.55)';
+};
 
-    renderHistory(); initOCR();
-  </script>
+/* ============ TC DOĞRULAMA ============ */
+function tcOk(t) {
+  if (!/^[1-9]\d{10}$/.test(t)) return false;
+  const d = t.split('').map(Number);
+  const h10 = (((d[0] + d[2] + d[4] + d[6] + d[8]) * 7 - (d[1] + d[3] + d[5] + d[7])) % 10 + 10) % 10;
+  if (d[9] !== h10) return false;
+  return d[10] === d.slice(0, 10).reduce((a, b) => a + b, 0) % 10;
+}
+
+/* ============ GÖRÜNTÜ ÖN İŞLEME ============ */
+// Kılavuz kutusunu al (video 'cover' ölçeklemesine göre)
+function grab() {
+  const v = $('video'), vW = v.videoWidth, vH = v.videoHeight, cam = $('cam');
+  if (!vW) return null;
+  const cw = cam.clientWidth, ch = cam.clientHeight, s = Math.max(cw / vW, ch / vH);
+  const bw = cw * 0.94, bh = ch * 0.30, bx = (cw - bw) / 2, by = (ch - bh) / 2;
+  const sx = (bx + (vW * s - cw) / 2) / s, sy = (by + (vH * s - ch) / 2) / s, sw = bw / s, sh = bh / s;
+  const k = Math.min(1, CFG.W / sw), w = Math.round(sw * k), h = Math.round(sh * k);
+  c1.width = w; c1.height = h;
+  x1.drawImage(v, sx, sy, sw, sh, 0, 0, w, h);
+  return x1.getImageData(0, 0, w, h);
+}
+
+// 1) Parlaklık = max(R,G,B): renkli guilloche/çiçek desenleri beyazlaşır, siyah yazı kalır
+// 2) Netlik ölçümü: titreşimli/bulanık kareleri OCR'a hiç göndermez
+// 3) Yerel adaptif eşik (integral görüntü): gölge, parlama, düzensiz ışık
+// 4) Otomatik polarite: telefon ekranı (açık yazı/koyu zemin) da düzgün okunur
+function prep(img) {
+  const { width: w, height: h, data: d } = img, n = w * h, g = new Uint8Array(n);
+  for (let i = 0, j = 0; i < n; i++, j += 4) { const r = d[j], gg = d[j + 1], b = d[j + 2]; g[i] = r > gg ? (r > b ? r : b) : (gg > b ? gg : b); }
+
+  let sh = 0;
+  for (let y = 1; y < h - 1; y += 2) for (let x = 1; x < w - 1; x += 2) { const i = y * w + x; sh += Math.abs(g[i + 1] - g[i - 1]) + Math.abs(g[i + w] - g[i - w]); }
+  sh /= n / 4;
+  peak = Math.max(sh, peak * 0.985);
+  const rel = Math.min(1, sh / peak);
+  $('sharp').style.width = (rel * 100) + '%';
+  if (rel < 0.6) return { blur: true };
+
+  const W1 = w + 1, I = new Uint32Array(W1 * (h + 1));
+  for (let y = 1; y <= h; y++) { let row = 0; for (let x = 1; x <= w; x++) { row += g[(y - 1) * w + x - 1]; I[y * W1 + x] = I[(y - 1) * W1 + x] + row; } }
+  const r = Math.max(14, h >> 3), T = CFG.CONTRAST, flag = new Uint8Array(n);
+  let nd = 0, nl = 0;
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - r), y1 = Math.min(h, y + r + 1);
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.max(0, x - r), x1_ = Math.min(w, x + r + 1);
+      const m = (I[y1 * W1 + x1_] - I[y0 * W1 + x1_] - I[y1 * W1 + x0] + I[y0 * W1 + x0]) / ((x1_ - x0) * (y1 - y0));
+      const i = y * w + x;
+      if (g[i] < m - T) { flag[i] = 1; nd++; } else if (g[i] > m + T) { flag[i] = 2; nl++; }
+    }
+  }
+  const textFlag = nd >= nl ? 1 : 2, ink = (textFlag === 1 ? nd : nl) / n;
+  if (ink < 0.01 || ink > 0.40) return { empty: true };
+
+  const P = 24, c = document.createElement('canvas'); c.width = w + 2 * P; c.height = h + 2 * P;
+  const cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+  const out = cx.createImageData(w, h), o = out.data;
+  for (let i = 0, j = 0; i < n; i++, j += 4) { const v = flag[i] === textFlag ? 0 : 255; o[j] = o[j + 1] = o[j + 2] = v; o[j + 3] = 255; }
+  cx.putImageData(out, P, P);
+  return { canvas: c };
+}
+
+/* ============ TARAMA DÖNGÜSÜ ============ */
+function candidates(text) {
+  const res = [];
+  text.split('\n').forEach(line => {           // satırlar birleştirilmez: yanlış eşleşme azalır
+    const s = line.replace(/\D/g, '');
+    for (let i = 0; i + 11 <= s.length; i++) { const t = s.substr(i, 11); if (tcOk(t)) res.push(t); }
+  });
+  return res;
+}
+
+function loop() {
+  if (!scanning) return;
+  if (inflight < CFG.WORKERS) {
+    const img = grab(), p = img && prep(img);
+    if (p && p.canvas) {
+      inflight++;
+      sched.addJob('recognize', p.canvas).then(({ data }) => {
+        if (!scanning) return;
+        const txt = data.text || '', digits = txt.replace(/\D/g, '');
+        $('dbg').textContent = digits.length > 2 ? digits.slice(0, 18) : 'Hizalanıyor…';
+        const now = Date.now();
+        for (const tc of new Set(candidates(txt))) {
+          const arr = (votes.get(tc) || []).filter(t => now - t < CFG.VOTE_MS); arr.push(now); votes.set(tc, arr);
+          if (arr.length >= CFG.VOTE) { done(tc); return; }
+        }
+      }).catch(() => {}).finally(() => inflight--);
+    } else if (p && p.blur) $('dbg').textContent = 'Net değil – sabit tut';
+    else if (p && p.empty) $('dbg').textContent = 'Numarayı kutuya al';
+  }
+  setTimeout(loop, 50);
+}
+
+function done(tc) {
+  stopCamera(); show(tc); save(tc); status('✓ Doğrulandı', '#10b981');
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+
+/* ============ SONUÇ / QR ============ */
+function show(tc) {
+  $('tc').textContent = tc; $('qr').innerHTML = '';
+  if (window.QRCode) new QRCode($('qr'), { text: tc, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M, colorDark: '#000000', colorLight: '#ffffff' });
+  $('result').style.display = 'block'; window.scrollTo({ top: 0 });
+}
+$('again').onclick = () => { window.scrollTo({ top: 0 }); startCamera(); };
+$('manbtn').onclick = () => {
+  const v = $('man').value.trim();
+  if (!tcOk(v)) { status('Geçersiz TC numarası', '#ef4444'); return; }
+  stopCamera(); show(v); save(v); status('✓ Elle girildi', '#10b981'); $('man').value = '';
+};
+
+/* ============ GEÇMİŞ ============ */
+const KEY = 'tc_history_local';
+const getH = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } };
+const setH = l => { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch {} };
+function save(tc) {
+  let l = getH(); const old = l.find(i => i.tc === tc); l = l.filter(i => i.tc !== tc);
+  const n = new Date(), p = x => String(x).padStart(2, '0');
+  l.unshift({ tc, name: old ? old.name : '', date: `${p(n.getDate())}.${p(n.getMonth() + 1)}.${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}` });
+  setH(l.slice(0, 50)); render();
+}
+function render() {
+  const ul = $('hist'); ul.innerHTML = ''; const l = getH();
+  if (!l.length) { ul.innerHTML = '<li class="empty">Kayıt yok.</li>'; return; }
+  l.forEach(it => {
+    const li = document.createElement('li'); li.className = 'it';
+    const top = document.createElement('div'); top.className = 'top';
+    const a = document.createElement('span'); a.className = 'htc'; a.textContent = it.tc;
+    const b = document.createElement('span'); b.className = 'hd'; b.textContent = it.date;
+    top.append(a, b); top.onclick = () => { stopCamera(); show(it.tc); status('Geçmiş kaydı'); };
+    const nm = document.createElement('button'); nm.className = 'nm' + (it.name ? ' has' : ''); nm.textContent = it.name || 'İsim ekle +';
+    nm.onclick = () => {
+      const v = prompt(`TC: ${it.tc}\nİsim Soyisim:`, it.name || '');
+      if (v !== null) { const L = getH(), k = L.find(i => i.tc === it.tc); if (k) { k.name = v.trim(); setH(L); render(); } }
+    };
+    li.append(top, nm); ul.appendChild(li);
+  });
+}
+$('clr').onclick = () => { if (confirm('Tüm kayıtlar silinecek. Onaylıyor musunuz?')) { localStorage.removeItem(KEY); render(); } };
+
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+render(); init();
+</script>
 </body>
 </html>
