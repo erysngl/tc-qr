@@ -1,4 +1,4 @@
-const C = 'tc-v5';
+const C = 'tc-v6';
 const PRE = ['./', 'index.html', 'manifest.json',
   'lib/tesseract.min.js', 'lib/worker.min.js', 'lib/qrcode.min.js',
   'lib/tesseract-core-simd-lstm.wasm.js', 'lib/tesseract-core-lstm.wasm.js',
