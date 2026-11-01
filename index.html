@@ -32,10 +32,17 @@ ul{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:260px;o
 .htc{font-weight:800;font-size:17px;letter-spacing:1px}.hd{font-size:12px;color:#64748b}
 .nm{background:none;border:0;color:#38bdf8;font-size:13px;font-weight:600;padding:6px 0 0}.nm.has{color:#10b981}
 .empty{font-size:13px;color:#64748b;text-align:center;padding:16px 0}
+.tabs{display:flex;gap:6px;width:100%;max-width:400px;margin-bottom:12px;background:#1e293b;padding:4px;border-radius:14px}
+.tab{flex:1;padding:12px 6px;border:0;border-radius:10px;background:transparent;color:#94a3b8;font-size:15px;font-weight:800}
+.tab.on{background:#3b82f6;color:#fff}
+.manual{display:flex;gap:8px}
+.manual input{flex:1;min-width:0;padding:12px;font-size:18px;letter-spacing:2px;background:#0f172a;color:#fff;border:1px solid #334155;border-radius:10px;text-transform:uppercase}
+.manual button{padding:0 18px;font-weight:800;background:#334155;color:#fff;border:0;border-radius:10px}
 </style>
 </head>
 <body>
 <div id="badge">Başlatılıyor</div>
+<div class="tabs"><button class="tab on" data-m="tc">TC Kimlik</button><button class="tab" data-m="bilek">Akıllı Bileklik</button></div>
 <div id="result"><div id="tc"></div><div id="qr"></div></div>
 <button id="again">YENİ TARAMA</button>
 
@@ -47,6 +54,11 @@ ul{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:260px;o
   <div id="sharp"></div>
 </div>
 
+<div class="card manual">
+  <input id="man" maxlength="11" autocomplete="off" autocapitalize="characters" spellcheck="false">
+  <button id="manbtn">QR</button>
+</div>
+
 <div class="card">
   <div class="hh"><h4>KAYIT GEÇMİŞİ</h4><button id="clr" class="clr">Temizle</button></div>
   <ul id="hist"></ul>
@@ -55,13 +67,15 @@ ul{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:260px;o
 <script>
 /* ============ AYARLAR ============ */
 const CFG = {
-  W: 900,          // OCR'a giden şerit genişliği (px); rakamlar ~40px yüksek olmalı
-  BOX_W: 0.80,     // Tarama kutusu genişliği (ekranın %'si)
-  BOX_H: 0.12,     // Tarama kutusu yüksekliği: sadece TC satırı sığsın
-  VOTE: 2,         // Aynı TC kaç ayrı karede okunmalı (1 = en hızlı, 2 = güvenli)
+  W: 900,          // OCR'a giden şerit genişliği (px)
   VOTE_MS: 6000,   // Oyların geçerlilik süresi
   WORKERS: 2,      // Paralel OCR işçisi
-  CONTRAST: 14     // Yerel eşik farkı (düşük ışıkta düşür, güneşte artır)
+  CONTRAST: 14,    // Yerel eşik farkı (loşta düşür, güneşte artır)
+  PFX: 2, DIG: 6   // Akıllı bileklik formatı: 2 harf + 6 rakam (AB729643)
+};
+const MODES = {
+  tc:    { label: 'TC', wl: '0123456789', boxW: .80, boxH: .12, vote: 2, key: 'tc_history_local', max: 11, im: 'numeric', ph: 'TC kimlik no gir', cands: t => tcCands(t) },
+  bilek: { label: 'Bileklik', wl: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', boxW: .70, boxH: .12, vote: 2, key: 'bilek_history_local', max: 16, im: 'text', ph: 'Bileklik no gir (AB729643)', cands: t => bilekCands(t) }
 };
 const BASE = new URL('lib/', location.href).href;
 const $ = id => document.getElementById(id);
@@ -70,7 +84,7 @@ const $ = id => document.getElementById(id);
 const load = src => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 const lib = async (local, cdn) => { try { await load(local); } catch { await load(cdn); } };
 
-let sched = null, track = null, torchOn = false, scanning = false, inflight = 0, peak = 1, votes = new Map(), wake = null;
+let workers = [], gen = 0, sched = null, track = null, torchOn = false, scanning = false, inflight = 0, peak = 1, votes = new Map(), wake = null;
 const c1 = document.createElement('canvas'), x1 = c1.getContext('2d', { willReadFrequently: true });
 
 function status(msg, col) { const b = $('badge'); b.textContent = msg; b.style.color = col || '#94a3b8'; b.style.borderColor = col || '#334155'; }
@@ -86,14 +100,9 @@ async function init() {
     sched = Tesseract.createScheduler();
     for (let i = 0; i < CFG.WORKERS; i++) {
       const w = await Tesseract.createWorker('eng', 1, opts);
-      await w.setParameters({
-        tessedit_char_whitelist: '0123456789',
-        tessedit_pageseg_mode: '11',
-        user_defined_dpi: '300'
-      });
-      sched.addWorker(w);
+      workers.push(w); sched.addWorker(w);
     }
-    startCamera();
+    await applyMode(); startCamera();
   } catch (e) { status('OCR yüklenemedi: lib/ dosyalarını kontrol et', '#ef4444'); }
 }
 
@@ -142,7 +151,7 @@ function grab() {
   const v = $('video'), vW = v.videoWidth, vH = v.videoHeight, cam = $('cam');
   if (!vW) return null;
   const cw = cam.clientWidth, ch = cam.clientHeight, s = Math.max(cw / vW, ch / vH);
-  const bw = cw * CFG.BOX_W, bh = ch * CFG.BOX_H, bx = (cw - bw) / 2, by = (ch - bh) / 2;
+  const bw = cw * M().boxW, bh = ch * M().boxH, bx = (cw - bw) / 2, by = (ch - bh) / 2;
   const sx = (bx + (vW * s - cw) / 2) / s, sy = (by + (vH * s - ch) / 2) / s, sw = bw / s, sh = bh / s;
   const k = Math.min(3, Math.max(0.5, CFG.W / sw)), w = Math.round(sw * k), h = Math.round(sh * k);
   c1.width = w; c1.height = h;
@@ -195,30 +204,50 @@ function prep(img) {
   return { canvas: c };
 }
 
-/* ============ TARAMA DÖNGÜSÜ ============ */
-function candidates(text) {
+/* ============ ADAY ÇIKARMA ============ */
+function tcCands(text) {
   const res = [];
-  text.split('\n').forEach(line => {           // satırlar birleştirilmez: yanlış eşleşme azalır
+  text.split('\n').forEach(line => {           // satırlar birleştirilmez
     const s = line.replace(/\D/g, '');
     for (let i = 0; i + 11 <= s.length; i++) { const t = s.substr(i, 11); if (tcOk(t)) res.push(t); }
   });
   return res;
 }
+// Bileklik: konuma göre düzeltme (ilk 2 = harf, kalan = rakam), en çok 2 düzeltme
+function bilekCands(text) {
+  const res = [], P = CFG.PFX, N = CFG.PFX + CFG.DIG;
+  const toL = { '0': 'O', '1': 'I', '5': 'S', '8': 'B', '2': 'Z', '6': 'G', '4': 'A' };
+  const toD = { O: '0', Q: '0', D: '0', I: '1', L: '1', S: '5', B: '8', Z: '2', G: '6', A: '4', T: '7' };
+  text.toUpperCase().split('\n').forEach(line => {
+    const s = line.replace(/[^A-Z0-9]/g, '');
+    for (let i = 0; i + N <= s.length; i++) {
+      let out = '', fix = 0, ok = true;
+      for (let j = 0; j < N && ok; j++) {
+        const c = s[i + j];
+        if (j < P) { if (/[A-Z]/.test(c)) out += c; else if (toL[c]) { out += toL[c]; fix++; } else ok = false; }
+        else { if (/\d/.test(c)) out += c; else if (toD[c]) { out += toD[c]; fix++; } else ok = false; }
+      }
+      if (ok && fix <= 2) res.push(out);
+    }
+  });
+  return res;
+}
 
+/* ============ TARAMA DÖNGÜSÜ ============ */
 function loop() {
   if (!scanning) return;
   if (inflight < CFG.WORKERS) {
     const img = grab(), p = img && prep(img);
     if (p && p.canvas) {
-      inflight++;
+      inflight++; const g0 = gen, m = M();
       sched.addJob('recognize', p.canvas).then(({ data }) => {
-        if (!scanning) return;
-        const txt = data.text || '', digits = txt.replace(/\D/g, '');
-        $('dbg').textContent = digits.length > 2 ? digits.slice(0, 18) : 'Hizalanıyor…';
+        if (!scanning || g0 !== gen) return;
+        const txt = data.text || '', raw = txt.replace(/[^A-Za-z0-9]/g, '');
+        $('dbg').textContent = raw.length > 2 ? raw.slice(0, 18) : 'Hizalanıyor…';
         const now = Date.now();
-        for (const tc of new Set(candidates(txt))) {
-          const arr = (votes.get(tc) || []).filter(t => now - t < CFG.VOTE_MS); arr.push(now); votes.set(tc, arr);
-          if (arr.length >= CFG.VOTE) { done(tc); return; }
+        for (const c of new Set(m.cands(txt))) {
+          const arr = (votes.get(c) || []).filter(t => now - t < CFG.VOTE_MS); arr.push(now); votes.set(c, arr);
+          if (arr.length >= m.vote) { done(c); return; }
         }
       }).catch(() => {}).finally(() => inflight--);
     } else if (p && p.blur) $('dbg').textContent = 'Net değil – sabit tut';
@@ -226,28 +255,42 @@ function loop() {
   }
   setTimeout(loop, 50);
 }
-
-function done(tc) {
-  stopCamera(); show(tc); save(tc); status('✓ Doğrulandı', '#10b981');
+function done(c) {
+  stopCamera(); show(c); save(c); status('✓ Doğrulandı', '#10b981');
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
 
 /* ============ SONUÇ / QR ============ */
-function show(tc) {
-  $('tc').textContent = tc; $('qr').innerHTML = '';
-  if (window.QRCode) new QRCode($('qr'), { text: tc, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M, colorDark: '#000000', colorLight: '#ffffff' });
+function show(c) {
+  $('tc').textContent = c; $('qr').innerHTML = '';
+  if (window.QRCode) new QRCode($('qr'), { text: c, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M, colorDark: '#000000', colorLight: '#ffffff' });
   $('result').style.display = 'block'; window.scrollTo({ top: 0 });
 }
 $('again').onclick = () => { window.scrollTo({ top: 0 }); startCamera(); };
 
-/* ============ GEÇMİŞ ============ */
-const KEY = 'tc_history_local';
-const getH = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } };
-const setH = l => { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch {} };
-function save(tc) {
-  let l = getH(); const old = l.find(i => i.tc === tc); l = l.filter(i => i.tc !== tc);
+/* ============ ELLE GİRİŞ ============ */
+function manual() {
+  const v = $('man').value.trim().toUpperCase().replace(/\s/g, '');
+  if (mode === 'tc') {
+    if (!/^\d{11}$/.test(v)) { status('11 haneli TC girin', '#ef4444'); return; }
+    if (!tcOk(v) && !confirm('Kontrol hanesi tutmuyor. Yine de QR oluşturulsun mu?')) return;
+  } else {
+    if (!/^[A-Z0-9]{4,16}$/.test(v)) { status('Geçersiz kod', '#ef4444'); return; }
+    if (!new RegExp('^[A-Z]{' + CFG.PFX + '}\\d{' + CFG.DIG + '}$').test(v) && !confirm('Format farklı. Yine de QR oluşturulsun mu?')) return;
+  }
+  stopCamera(); show(v); save(v); status('✓ Elle girildi', '#10b981'); $('man').value = '';
+}
+$('manbtn').onclick = manual;
+$('man').addEventListener('keydown', e => { if (e.key === 'Enter') manual(); });
+$('man').addEventListener('input', e => { if (mode === 'tc') e.target.value = e.target.value.replace(/\D/g, ''); });
+
+/* ============ GEÇMİŞ (her mod ayrı) ============ */
+const getH = () => { try { return JSON.parse(localStorage.getItem(M().key) || '[]'); } catch { return []; } };
+const setH = l => { try { localStorage.setItem(M().key, JSON.stringify(l)); } catch {} };
+function save(c) {
+  let l = getH(); const old = l.find(i => i.tc === c); l = l.filter(i => i.tc !== c);
   const n = new Date(), p = x => String(x).padStart(2, '0');
-  l.unshift({ tc, name: old ? old.name : '', date: `${p(n.getDate())}.${p(n.getMonth() + 1)}.${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}` });
+  l.unshift({ tc: c, name: old ? old.name : '', date: `${p(n.getDate())}.${p(n.getMonth() + 1)}.${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}` });
   setH(l.slice(0, 50)); render();
 }
 function render() {
@@ -261,24 +304,45 @@ function render() {
     top.append(a, b); top.onclick = () => { stopCamera(); show(it.tc); status('Geçmiş kaydı'); };
     const nm = document.createElement('button'); nm.className = 'nm' + (it.name ? ' has' : ''); nm.textContent = it.name || 'İsim ekle +';
     nm.onclick = () => {
-      const v = prompt(`TC: ${it.tc}\nİsim Soyisim:`, it.name || '');
+      const v = prompt(`${M().label}: ${it.tc}\nİsim Soyisim:`, it.name || '');
       if (v !== null) { const L = getH(), k = L.find(i => i.tc === it.tc); if (k) { k.name = v.trim(); setH(L); render(); } }
     };
     li.append(top, nm); ul.appendChild(li);
   });
 }
-$('clr').onclick = () => { if (confirm('Tüm kayıtlar silinecek. Onaylıyor musunuz?')) { localStorage.removeItem(KEY); render(); } };
+$('clr').onclick = () => { if (confirm(M().label + ' kayıtları silinecek. Onaylıyor musunuz?')) { localStorage.removeItem(M().key); render(); } };
+
+/* ============ SEKMELER / MODLAR (her açılışta TC) ============ */
+let mode = 'tc';
+const M = () => MODES[mode];
+function applyGuide() {
+  const G = document.querySelector('.guide'), m = M();
+  G.style.left = (50 - m.boxW * 50) + '%'; G.style.width = (m.boxW * 100) + '%';
+  G.style.top = (50 - m.boxH * 50) + '%'; G.style.height = (m.boxH * 100) + '%';
+}
+async function applyMode() {
+  if (!workers.length) return;
+  await Promise.all(workers.map(w => w.setParameters({ tessedit_char_whitelist: M().wl, tessedit_pageseg_mode: '11', user_defined_dpi: '300' })));
+}
+async function setMode(m) {
+  if (m === mode && scanning) return;
+  mode = m; gen++; votes.clear();
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.m === m));
+  const inp = $('man'); inp.value = ''; inp.placeholder = M().ph; inp.inputMode = M().im; inp.maxLength = M().max;
+  $('result').style.display = 'none'; applyGuide(); render();
+  await applyMode();
+  if (!track && sched) startCamera();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => setMode(t.dataset.m));
 
 if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-const G = document.querySelector('.guide');
-G.style.left = (50 - CFG.BOX_W * 50) + '%'; G.style.width = (CFG.BOX_W * 100) + '%';
-G.style.top = (50 - CFG.BOX_H * 50) + '%'; G.style.height = (CFG.BOX_H * 100) + '%';
 // Ekrana dokun = yeniden odakla
 $('cam').addEventListener('click', async e => {
   if (e.target.id === 'torch' || !track) return;
   try { await track.applyConstraints({ advanced: [{ focusMode: 'single-shot' }] }); } catch {}
   setTimeout(() => track && track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(() => {}), 1200);
 });
+$('man').placeholder = M().ph; $('man').inputMode = M().im; applyGuide();
 render(); init();
 </script>
 </body>
