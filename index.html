@@ -38,12 +38,22 @@ ul{list-style:none;display:flex;flex-direction:column;gap:8px;max-height:260px;o
 .manual{display:flex;gap:8px}
 .manual input{flex:1;min-width:0;padding:12px;font-size:18px;letter-spacing:2px;background:#0f172a;color:#fff;border:1px solid #334155;border-radius:10px;text-transform:uppercase}
 .manual button{padding:0 18px;font-weight:800;background:#334155;color:#fff;border:0;border-radius:10px}
+.row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rn{flex:1;min-width:0;font-size:13px;font-weight:700;color:#10b981;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rn.none{color:#64748b;font-weight:500}
+.sm{padding:9px 14px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid #334155;background:transparent;color:#38bdf8}
+.sm.del{color:#ef4444;border-color:rgba(239,68,68,.35)}
+.sm.ok{background:#10b981;border-color:#10b981;color:#fff}
+.edit{display:flex;flex-direction:column;gap:8px}
+.edit input{padding:11px;font-size:16px;background:#1e293b;color:#fff;border:1px solid #334155;border-radius:8px;text-transform:uppercase}
+.edit .btns{display:flex;gap:8px}.edit .btns .sm{flex:1}
+#rname{display:none;font-size:20px;font-weight:800;color:#e2e8f0;margin:-6px 0 14px}
 </style>
 </head>
 <body>
 <div id="badge">Başlatılıyor</div>
 <div class="tabs"><button class="tab on" data-m="tc">TC Kimlik</button><button class="tab" data-m="bilek">Akıllı Bileklik</button></div>
-<div id="result"><div id="tc"></div><div id="qr"></div></div>
+<div id="result"><div id="tc"></div><div id="rname"></div><div id="qr"></div></div>
 <button id="again">YENİ TARAMA</button>
 
 <div class="cam" id="cam">
@@ -263,6 +273,7 @@ function done(c) {
 /* ============ SONUÇ / QR ============ */
 function show(c) {
   $('tc').textContent = c; $('qr').innerHTML = '';
+  const nm = (getH().find(i => i.tc === c) || {}).name; $('rname').textContent = UP(nm); $('rname').style.display = nm ? 'block' : 'none';
   if (window.QRCode) new QRCode($('qr'), { text: c, width: 240, height: 240, correctLevel: QRCode.CorrectLevel.M, colorDark: '#000000', colorLight: '#ffffff' });
   $('result').style.display = 'block'; window.scrollTo({ top: 0 });
 }
@@ -285,32 +296,57 @@ $('man').addEventListener('keydown', e => { if (e.key === 'Enter') manual(); });
 $('man').addEventListener('input', e => { if (mode === 'tc') e.target.value = e.target.value.replace(/\D/g, ''); });
 
 /* ============ GEÇMİŞ (her mod ayrı) ============ */
+const UP = t => (t || '').toLocaleUpperCase('tr-TR');   // isimler daima BÜYÜK harf (i→İ, ı→I)
 const getH = () => { try { return JSON.parse(localStorage.getItem(M().key) || '[]'); } catch { return []; } };
 const setH = l => { try { localStorage.setItem(M().key, JSON.stringify(l)); } catch {} };
+let editing = null;   // düzenlenen kaydın kodu
 function save(c) {
   let l = getH(); const old = l.find(i => i.tc === c); l = l.filter(i => i.tc !== c);
   const n = new Date(), p = x => String(x).padStart(2, '0');
   l.unshift({ tc: c, name: old ? old.name : '', date: `${p(n.getDate())}.${p(n.getMonth() + 1)}.${n.getFullYear()} ${p(n.getHours())}:${p(n.getMinutes())}` });
   setH(l.slice(0, 50)); render();
 }
+const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; };
+
+function editForm(it) {
+  const f = mk('div', 'edit');
+  const c = mk('input'); c.value = it.tc; c.maxLength = M().max; c.inputMode = M().im; c.placeholder = M().label + ' no';
+  if (mode === 'tc') c.addEventListener('input', () => { c.value = c.value.replace(/\D/g, ''); });
+  const n = mk('input'); n.value = UP(it.name); n.placeholder = 'İSİM SOYİSİM'; n.autocapitalize = 'characters';
+  const btns = mk('div', 'btns'), ok = mk('button', 'sm ok', 'Kaydet'), no = mk('button', 'sm', 'İptal');
+  ok.onclick = () => {
+    const code = c.value.trim().toUpperCase().replace(/\s/g, ''), name = UP(n.value.trim());
+    if (!(mode === 'tc' ? /^\d{11}$/.test(code) : /^[A-Z0-9]{4,16}$/.test(code))) { status('Geçersiz kod', '#ef4444'); return; }
+    if (mode === 'tc' && !tcOk(code) && !confirm('Kontrol hanesi tutmuyor. Yine de kaydedilsin mi?')) return;
+    let l = getH();
+    if (code !== it.tc && l.some(i => i.tc === code) && !confirm('Bu numara zaten kayıtlı. Üzerine yazılsın mı?')) return;
+    l = l.filter(i => i.tc === it.tc || i.tc !== code);    // çakışan diğer kaydı kaldır
+    const k = l.find(i => i.tc === it.tc); k.tc = code; k.name = name;
+    setH(l); editing = null; render();
+  };
+  no.onclick = () => { editing = null; render(); };
+  btns.append(ok, no); f.append(c, n, btns);
+  return f;
+}
+
 function render() {
   const ul = $('hist'); ul.innerHTML = ''; const l = getH();
   if (!l.length) { ul.innerHTML = '<li class="empty">Kayıt yok.</li>'; return; }
   l.forEach(it => {
-    const li = document.createElement('li'); li.className = 'it';
-    const top = document.createElement('div'); top.className = 'top';
-    const a = document.createElement('span'); a.className = 'htc'; a.textContent = it.tc;
-    const b = document.createElement('span'); b.className = 'hd'; b.textContent = it.date;
-    top.append(a, b); top.onclick = () => { stopCamera(); show(it.tc); status('Geçmiş kaydı'); };
-    const nm = document.createElement('button'); nm.className = 'nm' + (it.name ? ' has' : ''); nm.textContent = it.name || 'İsim ekle +';
-    nm.onclick = () => {
-      const v = prompt(`${M().label}: ${it.tc}\nİsim Soyisim:`, it.name || '');
-      if (v !== null) { const L = getH(), k = L.find(i => i.tc === it.tc); if (k) { k.name = v.trim(); setH(L); render(); } }
-    };
-    li.append(top, nm); ul.appendChild(li);
+    const li = mk('li', 'it');
+    if (editing === it.tc) { li.appendChild(editForm(it)); ul.appendChild(li); return; }
+    const top = mk('div', 'top');
+    top.append(mk('span', 'htc', it.tc), mk('span', 'hd', it.date));
+    top.onclick = () => { stopCamera(); show(it.tc); status('Geçmiş kaydı'); };
+    const row = mk('div', 'row');
+    const rn = mk('span', 'rn' + (it.name ? '' : ' none'), it.name ? UP(it.name) : 'İsim yok');
+    const ed = mk('button', 'sm', 'Düzenle'), del = mk('button', 'sm del', 'Sil');
+    ed.onclick = () => { editing = it.tc; render(); };
+    del.onclick = () => { if (confirm('Bu kayıt silinsin mi?\n' + it.tc + (it.name ? '\n' + UP(it.name) : ''))) { setH(getH().filter(i => i.tc !== it.tc)); if (editing === it.tc) editing = null; render(); } };
+    row.append(rn, ed, del); li.append(top, row); ul.appendChild(li);
   });
 }
-$('clr').onclick = () => { if (confirm(M().label + ' kayıtları silinecek. Onaylıyor musunuz?')) { localStorage.removeItem(M().key); render(); } };
+$('clr').onclick = () => { if (confirm(M().label + ' kayıtlarının TÜMÜ silinecek. Onaylıyor musunuz?')) { localStorage.removeItem(M().key); editing = null; render(); } };
 
 /* ============ SEKMELER / MODLAR (her açılışta TC) ============ */
 let mode = 'tc';
@@ -326,7 +362,7 @@ async function applyMode() {
 }
 async function setMode(m) {
   if (m === mode && scanning) return;
-  mode = m; gen++; votes.clear();
+  mode = m; gen++; votes.clear(); editing = null;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.m === m));
   const inp = $('man'); inp.value = ''; inp.placeholder = M().ph; inp.inputMode = M().im; inp.maxLength = M().max;
   $('result').style.display = 'none'; applyGuide(); render();
