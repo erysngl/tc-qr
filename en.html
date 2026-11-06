@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ender İletişim - 25 Kampanya Afiş Stüdyosu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0f19; color: #f8fafc; }
+        /* 1080x1350 (4:5) Instagram & WhatsApp Optimal Boyut Önizlemesi */
+        .poster-card {
+            width: 400px;
+            min-height: 520px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
+            border-radius: 16px;
+        }
+        .theme-vodafone {
+            background: radial-gradient(circle at 80% 10%, #ff2a2a 0%, #c80000 55%, #5a0000 100%);
+        }
+        .theme-tt {
+            background: radial-gradient(circle at 80% 10%, #00c6ff 0%, #00529b 55%, #001f4d 100%);
+        }
+        .theme-mepas {
+            background: radial-gradient(circle at 80% 10%, #2563eb 0%, #1e3a8a 55%, #0f172a 100%);
+        }
+        .theme-ender {
+            background: radial-gradient(circle at 80% 10%, #4f46e5 0%, #1e1b4b 60%, #090d16 100%);
+        }
+        .glass-box {
+            background: rgba(255, 255, 255, 0.96);
+            color: #0f172a;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+    <!-- Üst Kontrol Paneli -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-xl">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <img id="headerLogoPreview" src="" alt="Logo" class="w-11 h-11 rounded-full object-cover border-2 border-cyan-400 bg-slate-800">
+                <div>
+                    <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
+                        ENDER İLETİŞİM <span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2.5 py-0.5 rounded-full font-bold">24 AFİŞ HAZIR</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Türk Telekom • Vodafone • MEPAŞ • Faturamatik Yetkili İşlem Merkezi</p>
+                </div>
+            </div>
+
+            <!-- Filtre & Aksiyon Butonları -->
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+                    <button onclick="filterPosters('ALL')" id="btn-ALL" class="filter-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition">Tümü (24)</button>
+                    <button onclick="filterPosters('Türk Telekom')" id="btn-TT" class="filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition">Türk Telekom</button>
+                    <button onclick="filterPosters('Vodafone')" id="btn-VF" class="filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition">Vodafone</button>
+                    <button onclick="filterPosters('MEPAŞ')" id="btn-MP" class="filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition">MEPAŞ</button>
+                </div>
+
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                    <span>🖼️ Orijinal Logonu Seç</span>
+                    <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+                </label>
+
+                <button onclick="downloadAllPosters()" id="downloadAllBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5">
+                    <span>⬇️ Tüm Afişleri İndir (HD PNG)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Bilgilendirme Çubuğu -->
+    <div class="max-w-7xl mx-auto px-4 mt-5">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+            <div class="flex items-center gap-2">
+                <span class="text-base">✨</span>
+                <span>NotebookLM'den çıkardığın <strong>24 kampanya afişi tüm ara paket ve fiyatlarıyla</strong> eksiksiz dizildi! Her afişin altından <strong>PNG İndir</strong> veya <strong>Paylaşım Metnini Kopyala</strong> diyebilirsin.</span>
+            </div>
+            <span id="statusText" class="font-bold text-amber-400"></span>
+        </div>
+    </div>
+
+    <!-- Afiş Izgarası -->
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+        <div id="postersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center"></div>
+    </main>
+
+    <script>
+        // Varsayılan Ender İletişim Logosu (1000172241.png Birebir Vektör Karşılığı)
+        const DEFAULT_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="58" fill="%230088cc" stroke="%23ffffff" stroke-width="4"/><rect x="38" y="20" width="44" height="80" rx="7" fill="%231e293b" stroke="%230f172a" stroke-width="2"/><rect x="42" y="28" width="36" height="58" rx="2" fill="%23334155"/><rect x="45" y="32" width="9" height="9" rx="2" fill="%2322c55e"/><rect x="56" y="32" width="9" height="9" rx="2" fill="%2394a3b8"/><rect x="67" y="32" width="8" height="9" rx="2" fill="%2338bdf8"/><rect x="45" y="44" width="9" height="9" rx="2" fill="%23f43f5e"/><rect x="56" y="44" width="9" height="9" rx="2" fill="%23eab308"/><rect x="67" y="44" width="8" height="9" rx="2" fill="%23a855f7"/><circle cx="74" cy="74" r="14" fill="%23ef4444"/><path d="M68 74 h12 M74 68 v12" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>`;
+
+        let currentLogoDataUrl = DEFAULT_LOGO_SVG;
+        let activeFilter = 'ALL';
+
+        // 24 Kampanya Verisinin Tamamı (Eksiksiz Paket ve Fiyatlarla)
+        const campaigns = [
+            {
+                id: "1000172212",
+                brand: "Türk Telekom",
+                badge: "12 Fatura Dönemi Sabit Fiyat Garantisi",
+                title: "FATURALI YENİ HAT ALANLARA ÖZEL FIRSAT!",
+                subtitle: "1000 DK + 250 SMS & Prime 3000 DK Seçenekleriyle",
+                items: [
+                    { label: "5 GB İnternet", sub: "1000 DK + 250 SMS", price: "375 ₺" },
+                    { label: "10 GB İnternet", sub: "1000 DK + 250 SMS", price: "450 ₺" },
+                    { label: "20 GB İnternet", sub: "1000 DK + 250 SMS", price: "550 ₺" },
+                    { label: "40 GB İnternet", sub: "1000 DK + 250 SMS", price: "750 ₺" },
+                    { label: "60 GB + 10 GB Hediye", sub: "3000 DK + Prime Ayrıcalığı", price: "900 ₺" },
+                    { label: "80 GB + 10 GB Hediye", sub: "3000 DK + Prime Ayrıcalığı", price: "1.000 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "📲 Yeni faturalı hatta geçenlere müjde! Türk Telekom'dan 12 ay sabit fiyat garantili dev internet paketleri Ender İletişim’de! 🚀 Siz de hemen mağazamıza gelin, bütçenize en uygun tarifeyi yakalayın. 📍 Ender İletişim - Türk Telekom Yetkili İşlem Merkezi"
+            },
+            {
+                id: "1000172213",
+                brand: "Türk Telekom",
+                badge: "Sabit Fiyat Rahatlığı",
+                title: "FATURASIZDAN FATURALIYA GEÇİŞ ZAMANI!",
+                subtitle: "Türk Telekom Rahattan Tarifeler",
+                items: [
+                    { label: "Rahattan 1 GB", sub: "1500 DK + 250 SMS", price: "235 ₺" },
+                    { label: "Rahattan 3 GB", sub: "750 DK + 250 SMS", price: "265 ₺" },
+                    { label: "Rahattan 6 GB", sub: "750 DK + 250 SMS", price: "295 ₺" },
+                    { label: "Rahattan 10 GB", sub: "750 DK + 250 SMS", price: "335 ₺" },
+                    { label: "Rahattan 15 GB", sub: "1000 DK + 250 SMS", price: "380 ₺" },
+                    { label: "Rahattan 20 GB", sub: "1000 DK + 250 SMS", price: "425 ₺" },
+                    { label: "Rahattan 25 GB", sub: "1000 DK + 250 SMS", price: "465 ₺" },
+                    { label: "Rahattan 30 GB", sub: "1000 DK + 250 SMS", price: "505 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "💡 Faturasız hattınızı faturalıya taşıyarak sabit fiyat rahatlığını yaşayın! Türk Telekom Rahattan tarifeleri 235 ₺'den başlayan fiyatlarla Ender İletişim'de! 📞 İşlemleriniz için hemen mağazamıza bekliyoruz."
+            },
+            {
+                id: "1000172214",
+                brand: "Türk Telekom",
+                badge: "Kamu & Güvenlik Güçlerimize Özel",
+                title: "EMNİYET, JANDARMA VE MSB ÖZEL TARİFELERİ",
+                subtitle: "Taahhütlü İndirimli Paketler",
+                items: [
+                    { label: "5 GB Tarife", sub: "500 DK + 1000 SMS", price: "239 ₺" },
+                    { label: "10 GB Tarife", sub: "1000 DK + 1000 SMS", price: "290 ₺" },
+                    { label: "15 GB Tarife", sub: "1000 DK + 1000 SMS", price: "355 ₺" },
+                    { label: "20 GB Tarife", sub: "1500 DK + 1000 SMS", price: "395 ₺" },
+                    { label: "30 GB Tarife", sub: "2000 DK + 1000 SMS", price: "475 ₺" },
+                    { label: "40 GB Tarife", sub: "2000 DK + 1000 SMS", price: "530 ₺" },
+                    { label: "60 GB Tarife", sub: "2000 DK + 1000 SMS", price: "675 ₺" },
+                    { label: "Jandarma/MSB Baz", sub: "İlk 2 Ay 285₺ / Kalan 405₺", price: "285 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "🇹🇷 Emniyet, Jandarma ve MSB personelimize özel Türk Telekom ayrıcalıkları Ender İletişim’de! 239 ₺’den başlayan taahhütlü indirimli paketler için mağazamızı ziyaret edebilirsiniz."
+            },
+            {
+                id: "1000172215",
+                brand: "Türk Telekom",
+                badge: "5G + 500 TL Hediye Çeki + Yurt Dışı 3 Gün",
+                title: "TÜRK TELEKOM YENİ NESİL PRİME TARİFELER!",
+                subtitle: "Sınırsız Sosyal Medya & Özel Müşteri Hizmetleri",
+                items: [
+                    { label: "75 GB İnternet", sub: "+ Sınırsız Sosyal Medya", price: "1.100 ₺" },
+                    { label: "100 GB İnternet", sub: "+ Sınırsız Sosyal Medya", price: "1.200 ₺" },
+                    { label: "150 GB İnternet", sub: "+ Sınırsız Sosyal Medya", price: "1.400 ₺" },
+                    { label: "SINIRSIZ İNTERNET", sub: "Sınırsız DK + SMS Dahil", price: "1.700 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "🌟 5G hızı ve Sınırsız Sosyal Medya keyfi Türk Telekom Prime tarifeleriyle Ender İletişim’de! 500 TL hediye çeki ve yurt dışı kullanım avantajlarını kaçırmayın."
+            },
+            {
+                id: "1000172216",
+                brand: "Ender İletişim",
+                badge: "Derinkuyu Yetkili İşlem Merkezi",
+                title: "TÜM İLETİŞİM VE FATURA İŞLEMLERİNİZ İÇİN HİZMETİNİZDEYİZ!",
+                subtitle: "2008'den Bugüne Güvenilir Hizmet",
+                items: [
+                    { label: "Türk Telekom & Vodafone", sub: "Faturalı / Faturasız Hat İşlemleri", price: "YETKİLİ" },
+                    { label: "MEPAŞ Elektrik", sub: "Abonelik & Fatura İşlemleri", price: "NOKTA" },
+                    { label: "Faturamatik & Doğalgaz", sub: "Nakit / Kredi Kartına 9 Taksit", price: "ÖDEME" },
+                    { label: "Telefon & Aksesuar", sub: "Cihaz, Kılıf ve TL/Paket Yükleme", price: "MAĞAZA" }
+                ],
+                footer: "Ender İletişim - Türk Telekom, Vodafone & MEPAŞ Bayii",
+                caption: "🏪 Faturalı hat geçişleri, fatura ödemeleri ve elektrik abonelik işlemleriniz için Ender İletişim Mağazamıza bekliyoruz! Güler yüzlü hizmet ve en uygun tarifeler burada."
+            },
+            {
+                id: "1000172217",
+                brand: "Türk Telekom",
+                badge: "Yeni Nesil İletişim Altyapısı",
+                title: "TÜRK TELEKOM İLE GELECEĞE BAĞLAN!",
+                subtitle: "Işık Hızında 5G Teknolojisi Ender İletişim'de",
+                items: [
+                    { label: "Işık Hızında 5G", sub: "Kesintisiz Yüksek Mobil Hız", price: "5G HIZI" },
+                    { label: "Ücretsiz 5G SIM", sub: "Uyumlu SIM Kart Değişimi", price: "MAĞAZADA" },
+                    { label: "Avantajlı Paketler", sub: "En Uygun 5G Tarife Seçenekleri", price: "HEMEN GEÇ" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "🚀 Geleceğin iletişim teknolojisi 5G heyecanı Türk Telekom kalitesiyle Ender İletişim’de! Siz de en yeni paketlerle tanışmak için mağazamıza uğrayın."
+            },
+            {
+                id: "1000172219",
+                brand: "Türk Telekom",
+                badge: "Altyapısız Tak-Çalıştır Taşınabilir İnternet",
+                title: "TURBO BOX İLE HER YERDE İNTERNET!",
+                subtitle: "Evde, İşte, Bağda, Yaylada 64 Cihaza Kadar Bağlantı",
+                items: [
+                    { label: "4.5G - 100 GB", sub: "Tak Çalıştır Taşınabilir", price: "900 ₺" },
+                    { label: "4.5G - 250 GB", sub: "Tak Çalıştır Taşınabilir", price: "1.100 ₺" },
+                    { label: "4.5G - 500 GB", sub: "Tak Çalıştır Taşınabilir", price: "1.300 ₺" },
+                    { label: "5G - 250 GB", sub: "5G Ultra Hızlı Modem", price: "1.200 ₺" },
+                    { label: "5G - 500 GB", sub: "5G Ultra Hızlı Modem", price: "1.400 ₺" },
+                    { label: "5G - SINIRSIZ", sub: "Limitsiz Ev/İş İnterneti", price: "1.750 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "🌐 Altyapı derdine son! Türk Telekom Turbo Box ile fişe takın, anında yüksek hızlı internetin keyfini çıkarın. 4.5G ve 5G taşınabilir modem çözümleri Ender İletişim’de!"
+            },
+            {
+                id: "1000172220",
+                brand: "Türk Telekom",
+                badge: "Yeni Müşterilere Özel",
+                title: "FATURALI YENİ MÜŞTERİYE LİDER TARİFELER!",
+                subtitle: "Her Bütçeye Uygun Bol GB Seçenekleri",
+                items: [
+                    { label: "1 GB Tarife", sub: "1000 DK + 250 SMS", price: "350 ₺" },
+                    { label: "5 GB Tarife", sub: "1000 DK + 250 SMS", price: "375 ₺" },
+                    { label: "10 GB Tarife", sub: "1000 DK + 250 SMS", price: "450 ₺" },
+                    { label: "20 GB Tarife", sub: "1000 DK + 250 SMS", price: "550 ₺" },
+                    { label: "30 GB Tarife", sub: "1000 DK + 250 SMS", price: "650 ₺" },
+                    { label: "40 GB Tarife", sub: "1000 DK + 250 SMS", price: "750 ₺" },
+                    { label: "60 GB Tarife", sub: "3000 DK + 250 SMS", price: "900 ₺" },
+                    { label: "80 GB Tarife", sub: "3000 DK + 250 SMS", price: "1.000 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "💥 Türk Telekom’dan yeni müşterilere özel Lider Tarifeler! 1 GB’tan 80 GB’a kadar her ihtiyaca uygun dev paketler Ender İletişim güvencesiyle mağazamızda!"
+            },
+            {
+                id: "1000172221",
+                brand: "Türk Telekom",
+                badge: "Yeni Hat • Numara Taşıma • Faturasızdan Geçiş",
+                title: "YENİ MÜŞTERİYE YENİ NESİL PRİME TARİFELER",
+                subtitle: "Sınırsız Konuşma, SMS ve Sınırsız Sosyal Medya Dahil!",
+                items: [
+                    { label: "Prime 75 GB", sub: "Sınırsız DK/SMS + Sosyal Medya", price: "1.100 ₺" },
+                    { label: "Prime 100 GB", sub: "Sınırsız DK/SMS + Sosyal Medya", price: "1.200 ₺" },
+                    { label: "Prime 150 GB", sub: "Sınırsız DK/SMS + Sosyal Medya", price: "1.400 ₺" },
+                    { label: "SINIRSIZ İNTERNET", sub: "Her Yöne Sınırsız İletişim", price: "1.700 ₺" }
+                ],
+                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                caption: "👑 Sınırsız Sosyal Medya (FB, Instagram, X, YouTube) ve dev GB'lar Türk Telekom Yeni Nesil Prime tarifelerinde! Ender İletişim'e gelin, numaranızı veya faturasız hattınızı anında taşıyın."
+            },
+            {
+                id: "1000172222",
+                brand: "Türk Telekom",
+                badge: "Taahhüt Yenileme Hatırlatması",
+                title: "TÜRK TELEKOM SÖZLEŞMENİZ Mİ BİTİYOR?",
+                subtitle: "Yüksek Faturalar Ödemeyin, En Uygun Fiyatla Yenileyelim!",
+                items: [
+                    { label: "Arayın Yenileyelim", sub: "Hızlı Taahhüt Sorgulama", price: "0535 888 38 09" },
+                    { label: "Mağazamıza Gelin", sub: "Size Özel İndirimli Teklifler", price: "DERİNKUYU" }
+                ],
+                footer: "Ender İletişim - İrtibat: 0535 888 38 09",
+                caption: "⚠️ Türk Telekom taahhüdünüz bitiyor mu? Yüksek faturalar ödemeyin! Mağazamıza gelin ya da 0535 888 38 09 numaralı telefonumuzdan bize ulaşın, taahhüdünüzü en özel fiyatlarla yenileyelim. 📍 Ender İletişim"
+            },
+            {
+                id: "1000172223",
+                brand: "Vodafone",
+                badge: "Vodafone & Türk Telekom Yetkili Noktası",
+                title: "VODAFONE İŞLEMLERİNİZ İÇİN ENDER İLETİŞİM'DEYİZ!",
+                subtitle: "Tüm Hat, Fatura ve Ev İnterneti Çözümleri",
+                items: [
+                    { label: "Faturalı Hat & Geçiş", sub: "Numara Taşıma & Yeni Hat", price: "ANINDA" },
+                    { label: "Fatura & Para Transferi", sub: "Güvenli Ödeme Noktası", price: "HIZLI" },
+                    { label: "100 GB Ev İnterneti", sub: "TL ve Paket Yükleme İşlemleri", price: "AVANTAJLI" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "📍 Vodafone ve Türk Telekom resmi yetkili noktası Ender İletişim! Tüm hat geçiş, fatura ödeme ve paket yükleme işlemleriniz için sizleri mağazamıza bekliyoruz."
+            },
+            {
+                id: "1000172224",
+                brand: "Vodafone",
+                badge: "Yeni Nesil Mobil Şebeke",
+                title: "VODAFONE 5G HIZI ENDER İLETİŞİM'DE!",
+                subtitle: "Kırmızı Işık Hızında İletişimle Tanışın",
+                items: [
+                    { label: "Vodafone 5G Teknolojisi", sub: "Ultra Düşük Gecikme, Maksimum Hız", price: "5G HAZIR" },
+                    { label: "5G Uyumlu Tarifeler", sub: "En Uygun Geçiş Fırsatları", price: "MAĞAZADA" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "🔴 Vodafone 5G hızı ve ayrıcalıklı tarifeler Ender İletişim’de! Siz de geleceğin hızına geçmek için mağazamızı ziyaret edin."
+            },
+            {
+                id: "1000172225",
+                brand: "Vodafone",
+                badge: "Derinkuyu Taahhüt Yenileme Noktası",
+                title: "VODAFONE SÖZLEŞMENİZ Mİ BİTİYOR?",
+                subtitle: "Arayın veya Mağazamıza Gelin, En Uygun Fiyatla Yenileyelim!",
+                items: [
+                    { label: "Hemen Bizi Arayın", sub: "Sözleşme & İndirim Kontrolü", price: "0535 888 38 09" },
+                    { label: "Mağaza Hizmeti", sub: "Derinkuyu Ender İletişim", price: "BEKLERİZ" }
+                ],
+                footer: "Derinkuyu Ender İletişim - 0535 888 38 09",
+                caption: "📞 Derinkuyu’da Vodafone sözleşmesi biten müşterilerimize müjde! 0535 888 38 09 hattımızdan bizi arayın veya Ender İletişim mağazamıza gelin, en uygun tarife ile sözleşmenizi yenileyelim."
+            },
+            {
+                id: "1000172226",
+                brand: "Vodafone",
+                badge: "İlk 3 Ay Ücretsiz Cayma Hakkı + Durma Özelliği!",
+                title: "VODAFONE FATURALIYA GEÇİŞ ZAMANI!",
+                subtitle: "1000 DK + 250 SMS + Aşım Önleyen Durma Özelliği Hediye",
+                items: [
+                    { label: "5 GB Tarife", sub: "1.000 DK + 250 SMS", price: "265 ₺" },
+                    { label: "10 GB Tarife", sub: "1.000 DK + 250 SMS", price: "335 ₺" },
+                    { label: "20 GB Tarife", sub: "1.000 DK + 250 SMS", price: "430 ₺" },
+                    { label: "30 GB Tarife", sub: "1.000 DK + 250 SMS", price: "495 ₺" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "✨ Vodafone faturalıya geçene ilk 3 ay ücretsiz cayma hakkı ve aşım önleyen Durma Özelliği hediye! 265 ₺'den başlayan fiyatlarla Ender İletişim'de! 🔴"
+            },
+            {
+                id: "1000172227",
+                brand: "Vodafone",
+                badge: "Sınırsız Uygulamalar & 5G Deneyimi",
+                title: "YENİ FATURALI VE RED TARİFELERLE 5G KEYFİ!",
+                subtitle: "Standart Paketler & Sınırsız Sosyal Medyalı Red Paketleri",
+                items: [
+                    { label: "5 GB Standart", sub: "1000 DK + 250 SMS", price: "375 ₺" },
+                    { label: "10 GB Standart", sub: "1000 DK + 250 SMS", price: "450 ₺" },
+                    { label: "20 GB Standart", sub: "1000 DK + 250 SMS", price: "550 ₺" },
+                    { label: "30 GB Standart", sub: "1000 DK + 250 SMS", price: "650 ₺" },
+                    { label: "Red 40 GB", sub: "Sınırsız DK + WP, IG, FB, X", price: "900 ₺" },
+                    { label: "Red 60 GB", sub: "+ Sınırsız Netflix, YT, Spotify", price: "1.000 ₺" },
+                    { label: "Red 100 GB", sub: "+ Sınırsız TikTok, Netflix, YT", price: "1.200 ₺" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "🔥 Sınırsız WhatsApp, Instagram, Netflix ve YouTube keyfi Vodafone Red tarifeleriyle Ender İletişim'de! 5G hızına erişmek ve avantajlı fiyatları yakalamak için hemen mağazamıza bekliyoruz."
+            },
+            {
+                id: "1000172228",
+                brand: "Vodafone",
+                badge: "65 Yaş Üstüne Özel + 200 TL Vodafone Pay Hediyesi!",
+                title: "EMEKLİLERE ÖZEL AVANTAJLI TARİFELER!",
+                subtitle: "Ücretsiz Durma Özelliği & Süper 65 Çağrı Önceliği",
+                items: [
+                    { label: "Süper 1 GB", sub: "1000 DK + 250 SMS + Durma", price: "280 ₺" },
+                    { label: "Süper 5 GB", sub: "1000 DK + 250 SMS + Durma", price: "320 ₺" },
+                    { label: "Süper 10 GB", sub: "1000 DK + 250 SMS + Durma", price: "350 ₺" },
+                    { label: "Süper 20 GB", sub: "1000 DK + 250 SMS + Durma", price: "455 ₺" },
+                    { label: "Süper 30 GB", sub: "1000 DK + 250 SMS + Durma", price: "560 ₺" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "👵👨‍🦳 65 yaş üstü büyüklerimize özel Vodafone indirimleri Ender İletişim'de! 280 TL'den başlayan fiyatlar ve 200 TL Vodafone Pay hediyesiyle büyüklerimizin yanındayız."
+            },
+            {
+                id: "1000172229",
+                brand: "Vodafone",
+                badge: "26 Yaş Altı Gençlere: 3 Ay ChatGPT Go & YT/Spotify Hediye!",
+                title: "FREEZONE 5G HIZINI BOL GB İLE YAŞA!",
+                subtitle: "Sınırsız WhatsApp + 3 Ay YouTube, Prime, Spotify Hediyeli",
+                items: [
+                    { label: "FreeZone 10 GB", sub: "1000 DK + Sınırsız WhatsApp", price: "380 ₺" },
+                    { label: "FreeZone 20 GB", sub: "1000 DK + Sınırsız WhatsApp", price: "480 ₺" },
+                    { label: "FreeZone 40 GB", sub: "1000 DK + Sınırsız WhatsApp", price: "680 ₺" },
+                    { label: "FreeZone 80 GB", sub: "Sınırsız DK + Sınırsız Sosyal Medya", price: "900 ₺" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "⚡ Gençler müjde! 26 yaş altına özel FreeZone tarifelerinde Bol GB, Sınırsız WhatsApp, 3 ay ChatGPT Go ve Spotify/YouTube Premium hediyesi Ender İletişim'de!"
+            },
+            {
+                id: "1000172230",
+                brand: "Vodafone",
+                badge: "6 Ay Fiyat Garantili • Gençlere +20 GB Hediye!",
+                title: "NUMARA TAŞIMA FATURASIZ TARİFELER!",
+                subtitle: "28 Günlük Bol İnternetli Hazır Kart Paketleri",
+                items: [
+                    { label: "10 GB Faturasız", sub: "750 DK + 250 SMS (KPMN163)", price: "200 ₺" },
+                    { label: "25 GB Faturasız", sub: "750 DK + 250 SMS (KPMN164)", price: "300 ₺" },
+                    { label: "50 GB Faturasız", sub: "750 DK + 250 SMS (KPMN165)", price: "475 ₺" },
+                    { label: "7-26 Yaş Bonusu", sub: "Gençlere Ekstra İnternet", price: "+20 GB" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "📲 Faturasız hattınızı Vodafone’a taşıyın, 6 ay fiyat garantisi kazanın! 200 TL’den başlayan paketler ve gençlere özel +20 GB hediye fırsatı Ender İletişim’de!"
+            },
+            {
+                id: "1000172231",
+                brand: "Vodafone",
+                badge: "Ücretsiz Durma Özelliği + 250 TL Pay Hediyesi",
+                title: "VODAFONE'A GEL, FATURAN KONTROLÜNDE OLSUN!",
+                subtitle: "1000 DK + 250 SMS + Yılda 7.000 TL Marka İndirimi",
+                items: [
+                    { label: "5 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "375 ₺" },
+                    { label: "10 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "450 ₺" },
+                    { label: "20 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "550 ₺" },
+                    { label: "30 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "650 ₺" },
+                    { label: "50 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "800 ₺" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "🛑 Fatura sürprizlerine son! Fatura aşımını önleyen Durma Özelliği hediyeli Vodafone tarifeleri Ender İletişim'de! 375 ₺'den başlayan fiyatlarla hemen mağazamıza gelin."
+            },
+            {
+                id: "1000172232",
+                brand: "Vodafone",
+                badge: "Sürpriz Faturalara Son!",
+                title: "TÜM TARİFELERİMİZDE DURMA ÖZELLİĞİ ÜCRETSİZDİR!",
+                subtitle: "Paketiniz Bittiğinde Otomatik Durur, Ekstra Ücret Yazmaz",
+                items: [
+                    { label: "AŞIM YOK!", sub: "Faturanızda Sürpriz Yaşamazsınız", price: "ÜCRETSİZ" },
+                    { label: "Tam Kontrol", sub: "Tüm Yeni Faturalı Tarifelerde Geçerli", price: "%100 GÜVEN" }
+                ],
+                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                caption: "🛡️ Sürpriz faturalara geçit yok! Vodafone tarifelerinde faturanız durur, aşım ücreti ödemezsiniz. Bilgi ve geçiş için Ender İletişim’e bekliyoruz!"
+            },
+            {
+                id: "1000172233",
+                brand: "MEPAŞ",
+                badge: "EPDK Bilgilendirme Duyurusu",
+                title: "SON KAYNAK TEDARİK TARİFESİ (SKTT) LİMİTLERİ GÜNCELLENDİ",
+                subtitle: "Elektrik Abonelik ve İkili Anlaşma İşlemleri",
+                items: [
+                    { label: "SKTT Güncellemesi", sub: "EPDK Yeni Tüketim Limit Kararı", price: "DUYURU" },
+                    { label: "Abonelik & Sözleşme", sub: "Ender İletişim MEPAŞ Noktası", price: "YETKİLİ" }
+                ],
+                footer: "Ender İletişim - MEPAŞ Elektrik Yetkili İşlem Merkezi",
+                caption: "⚡ Elektrik abonelerimizin dikkatine! EPDK kararıyla Son Kaynak Tedarik Tarifesi (SKTT) limitleri güncellenmiştir. Detaylı bilgi ve MEPAŞ abonelik işlemleriniz için Ender İletişim’deyiz."
+            },
+            {
+                id: "1000172234",
+                brand: "MEPAŞ",
+                badge: "EPDK 30.10.2026 Kararı (01.01.2027'den İtibaren)",
+                title: "YENİ SKTT YILLIK TÜKETİM LİMİTLERİ",
+                subtitle: "Abone Gruplarına Göre Yıllık Elektrik Limitleri",
+                items: [
+                    { label: "Mesken Aboneleri", sub: "Yıllık Tüketim Limiti", price: "3.000 kWh" },
+                    { label: "Ticarethane & Sanayi", sub: "Aydınlatma Dahil Yıllık Limit", price: "15.000 kWh" },
+                    { label: "Tarımsal Sulama", sub: "Tarımsal Faaliyet Aboneleri", price: "150 Milyon" }
+                ],
+                footer: "Ender İletişim - MEPAŞ Elektrik Yetkili İşlem Merkezi",
+                caption: "📢 MEPAŞ Elektrik aboneleri için yeni tüketim limitleri açıklandı! Mesken, Sanayi ve Tarımsal abonelik limit detaylarını öğrenmek ve fatura işlemlerinizi yaptırmak için Ender İletişim’e uğrayın."
+            },
+            {
+                id: "1000172235",
+                brand: "MEPAŞ",
+                badge: "Abone Bilgilendirme Rehberi",
+                title: "SKTT LİMİTİNİ AŞARSANIZ NE OLUR?",
+                subtitle: "Serbest Tüketici ve Faturalandırma Bilgilendirmesi",
+                items: [
+                    { label: "Limit Aşımı Durumu", sub: "Yıllık limit aşılır ve ikili anlaşma yoksa", price: "SKTT" },
+                    { label: "Faturalandırma", sub: "Son Kaynak Tedarik Tarifesi uygulanır", price: "EPDK" },
+                    { label: "Detaylı Bilgi & İşlem", sub: "Mağazamızdan Destek Alabilirsiniz", price: "ÜCRETSİZ" }
+                ],
+                footer: "Ender İletişim - MEPAŞ Elektrik Yetkili İşlem Merkezi",
+                caption: "❓ Elektrik tüketim limitinizi aştığınızda ne olur? Serbest tüketici avantajları ve ikili anlaşma fırsatları hakkında bilgi almak için Ender İletişim MEPAŞ Yetkili Noktamıza bekliyoruz!"
+            },
+            {
+                id: "1000172236",
+                brand: "MEPAŞ",
+                badge: "Ender İletişim MEPAŞ & Faturamatik Bayii",
+                title: "SKTT'DE ELEKTRİK FATURASI NASIL HESAPLANIR?",
+                subtitle: "Formül: (PTF + YEKDEM) x KBK Katsayısı",
+                items: [
+                    { label: "Hesaplama Formülü", sub: "PTF + YEKDEM Çarpı Katsayı", price: "x KBK" },
+                    { label: "Mesken Grubu KBK", sub: "Konut Tüketici Katsayısı", price: "1,05" },
+                    { label: "Diğer Gruplar KBK", sub: "Ticarethane / Sanayi / Tarım", price: "1,0938" }
+                ],
+                footer: "Ender İletişim - MEPAŞ & Faturamatik Yetkili Bayii",
+                caption: "🧮 Elektrik faturanız nasıl hesaplanıyor? PTF, YEKDEM ve KBK katsayılarıyla fatura hesaplama detayları ve MEPAŞ elektrik ödemeleriniz için Ender İletişim Faturamatik Bayimize davetlisiniz."
+            }
+        ];
+
+        function getThemeClass(brand) {
+            if (brand === 'Vodafone') return 'theme-vodafone';
+            if (brand === 'Türk Telekom') return 'theme-tt';
+            if (brand === 'MEPAŞ') return 'theme-mepas';
+            return 'theme-ender';
+        }
+
+        function getAccentColors(brand) {
+            if (brand === 'Vodafone') return { badge: 'bg-white text-red-700', price: 'bg-red-600 text-white', border: 'border-red-100' };
+            if (brand === 'Türk Telekom') return { badge: 'bg-cyan-300 text-slate-950', price: 'bg-[#00529b] text-white', border: 'border-sky-100' };
+            if (brand === 'MEPAŞ') return { badge: 'bg-amber-400 text-slate-950', price: 'bg-amber-500 text-slate-950', border: 'border-blue-100' };
+            return { badge: 'bg-amber-400 text-slate-950', price: 'bg-indigo-600 text-white', border: 'border-indigo-100' };
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentLogoDataUrl = e.target.result;
+                document.getElementById('headerLogoPreview').src = currentLogoDataUrl;
+                renderPosters();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function filterPosters(brand) {
+            activeFilter = brand;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = 'filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition';
+            });
+            const activeBtnId = brand === 'ALL' ? 'btn-ALL' : brand === 'Türk Telekom' ? 'btn-TT' : brand === 'Vodafone' ? 'btn-VF' : 'btn-MP';
+            document.getElementById(activeBtnId).className = 'filter-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition';
+            renderPosters();
+        }
+
+        function renderPosters() {
+            const grid = document.getElementById('postersGrid');
+            grid.innerHTML = '';
+
+            const filtered = activeFilter === 'ALL' ? campaigns : campaigns.filter(c => c.brand === activeFilter);
+
+            filtered.forEach((camp, index) => {
+                const theme = getThemeClass(camp.brand);
+                const colors = getAccentColors(camp.brand);
+                const isCompact = camp.items.length >= 6;
+
+                const rowsHtml = camp.items.map(item => `
+                    <div class="flex items-center justify-between ${isCompact ? 'py-1 px-2.5' : 'py-2 px-3'} rounded-xl bg-slate-50 border ${colors.border}">
+                        <div class="pr-2">
+                            <div class="font-extrabold text-slate-900 ${isCompact ? 'text-[12px]' : 'text-[13px]'} leading-tight">${item.label}</div>
+                            <div class="text-[10px] font-semibold text-slate-500 leading-tight">${item.sub}</div>
+                        </div>
+                        <div class="${colors.price} font-black ${isCompact ? 'text-xs px-2.5 py-1' : 'text-sm px-3 py-1'} rounded-lg shrink-0 shadow-sm">
+                            ${item.price}
+                        </div>
+                    </div>
+                `).join('');
+
+                const cardWrapper = document.createElement('div');
+                cardWrapper.className = 'flex flex-col items-center gap-2.5';
+                cardWrapper.innerHTML = `
+                    <!-- POSTER KANVASI -->
+                    <div id="poster-${camp.id}" class="poster-card ${theme} p-4 text-white select-none">
+                        <!-- Dekoratif Işık -->
+                        <div class="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none"></div>
+
+                        <!-- ÜST KURUMSAL BAŞLIK (LOGO + ENDER İLETİŞİM) -->
+                        <div class="relative z-10 flex items-center justify-between bg-black/35 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/20">
+                            <div class="flex items-center gap-2.5">
+                                <img src="${currentLogoDataUrl}" class="w-10 h-10 rounded-full object-cover border-2 border-white bg-slate-900 shrink-0" alt="Logo">
+                                <div>
+                                    <div class="font-black text-sm tracking-wide leading-none text-white">ENDER İLETİŞİM</div>
+                                    <div class="text-[10px] font-bold text-white/85 mt-0.5">${camp.brand} Yetkili İşlem Merkezi</div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/20 text-white border border-white/25">
+                                ${camp.brand}
+                            </span>
+                        </div>
+
+                        <!-- ORTA KAMPANYA ALANI -->
+                        <div class="relative z-10 my-2.5 flex-1 flex flex-col justify-center">
+                            <div class="text-center mb-2.5">
+                                <span class="inline-block ${colors.badge} text-[10px] font-extrabold px-3 py-0.5 rounded-full shadow mb-1.5">
+                                    ★ ${camp.badge}
+                                </span>
+                                <h2 class="font-black ${isCompact ? 'text-base' : 'text-lg'} leading-snug uppercase tracking-tight drop-shadow">
+                                    ${camp.title}
+                                </h2>
+                                <p class="text-[11px] text-white/90 font-semibold mt-0.5">${camp.subtitle}</p>
+                            </div>
+
+                            <!-- Fiyat Listesi Kutusu -->
+                            <div class="glass-box rounded-2xl ${isCompact ? 'p-2.5 space-y-1' : 'p-3 space-y-1.5'}">
+                                ${rowsHtml}
+                            </div>
+                        </div>
+
+                        <!-- ALT KURUMSAL ŞERİT -->
+                        <div class="relative z-10 bg-slate-950/90 border border-white/15 rounded-xl px-3 py-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <img src="${currentLogoDataUrl}" class="w-6 h-6 rounded-full object-cover border border-cyan-400" alt="Logo">
+                                <div class="text-[10px] font-bold text-slate-200 leading-tight">
+                                    ${camp.footer}
+                                </div>
+                            </div>
+                            <div class="text-[10px] font-extrabold text-amber-400 shrink-0 ml-2">
+                                📍 DERİNKUYU
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Aksiyon Butonları (İndir & Metin Kopyala) -->
+                    <div class="w-[400px] flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 p-2 rounded-xl">
+                        <span class="text-[11px] font-bold text-slate-400 pl-1">#${index + 1} • ${camp.id}.jpg</span>
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="copyCaption('${camp.id}')" id="copy-${camp.id}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                                📋 Metni Kopyala
+                            </button>
+                            <button onclick="downloadSinglePoster('${camp.id}', '${camp.brand}')" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-extrabold px-3 py-1.5 rounded-lg transition shadow">
+                                ⬇️ PNG İndir
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(cardWrapper);
+            });
+        }
+
+        function copyCaption(id) {
+            const camp = campaigns.find(c => c.id === id);
+            if (!camp) return;
+            navigator.clipboard.writeText(camp.caption);
+            const btn = document.getElementById(`copy-${id}`);
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '✅ Kopyalandı!';
+            btn.classList.replace('bg-slate-800', 'bg-emerald-700');
+            setTimeout(() => {
+                btn.innerHTML = oldText;
+                btn.classList.replace('bg-emerald-700', 'bg-slate-800');
+            }, 2000);
+        }
+
+        async function downloadSinglePoster(id, brand) {
+            const el = document.getElementById(`poster-${id}`);
+            const status = document.getElementById('statusText');
+            status.textContent = `⏳ ${id} yüksek çözünürlüklü hazırlanıyor...`;
+            const canvas = await html2canvas(el, { scale: 3, useCORS: true, backgroundColor: null });
+            const link = document.createElement('a');
+            const safeBrand = brand.replace(/\s+/g, '_');
+            link.download = `Ender_Iletisim_${safeBrand}_${id}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            status.textContent = `✅ ${id} indirildi!`;
+        }
+
+        async function downloadAllPosters() {
+            const btn = document.getElementById('downloadAllBtn');
+            const status = document.getElementById('statusText');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            const filtered = activeFilter === 'ALL' ? campaigns : campaigns.filter(c => c.brand === activeFilter);
+            for (let i = 0; i < filtered.length; i++) {
+                const camp = filtered[i];
+                status.textContent = `⏳ İndiriliyor (${i + 1}/${filtered.length}): ${camp.title.substring(0, 25)}...`;
+                await downloadSinglePoster(camp.id, camp.brand);
+                await new Promise(r => setTimeout(r, 450));
+            }
+
+            status.textContent = `🎉 Tüm (${filtered.length}) afişler başarıyla indirildi!`;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+        }
+
+        // Başlangıçta çalıştır
+        document.getElementById('headerLogoPreview').src = currentLogoDataUrl;
+        renderPosters();
+    </script>
+</body>
+</html>
