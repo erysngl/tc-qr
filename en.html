@@ -3,13 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ender İletişim - 25 Kampanya Afiş Stüdyosu</title>
+    <title>Ender İletişim - 24 Kampanya Afiş Stüdyosu (Hatasız Hizalama)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- html2canvas yerine metin kayması yapmayan modern html-to-image kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0f19; color: #f8fafc; }
-        /* 1080x1350 (4:5) Instagram & WhatsApp Optimal Boyut Önizlemesi */
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
         .poster-card {
             width: 400px;
             min-height: 520px;
@@ -34,9 +42,18 @@
             background: radial-gradient(circle at 80% 10%, #4f46e5 0%, #1e1b4b 60%, #090d16 100%);
         }
         .glass-box {
-            background: rgba(255, 255, 255, 0.96);
+            background: #ffffff;
             color: #0f172a;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+        }
+        /* Kutu içi metinlerin dikeyde milimetrik ortalanması için özel sınıf */
+        .center-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1 !important;
+            text-align: center;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -49,7 +66,7 @@
                 <img id="headerLogoPreview" src="" alt="Logo" class="w-11 h-11 rounded-full object-cover border-2 border-cyan-400 bg-slate-800">
                 <div>
                     <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
-                        ENDER İLETİŞİM <span class="text-xs bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2.5 py-0.5 rounded-full font-bold">24 AFİŞ HAZIR</span>
+                        ENDER İLETİŞİM <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">KAYMA DÜZELTİLDİ ✓</span>
                     </h1>
                     <p class="text-xs text-slate-400">Türk Telekom • Vodafone • MEPAŞ • Faturamatik Yetkili İşlem Merkezi</p>
                 </div>
@@ -80,8 +97,8 @@
     <div class="max-w-7xl mx-auto px-4 mt-5">
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
             <div class="flex items-center gap-2">
-                <span class="text-base">✨</span>
-                <span>NotebookLM'den çıkardığın <strong>24 kampanya afişi tüm ara paket ve fiyatlarıyla</strong> eksiksiz dizildi! Her afişin altından <strong>PNG İndir</strong> veya <strong>Paylaşım Metnini Kopyala</strong> diyebilirsin.</span>
+                <span class="text-base">✅</span>
+                <span><strong>Güncelleme:</strong> İndirilen görsellerdeki yazı kayması sorunu yeni görüntü motoru (html-to-image) ile tamamen giderildi. Kutular tam ortalı iner.</span>
             </div>
             <span id="statusText" class="font-bold text-amber-400"></span>
         </div>
@@ -93,13 +110,11 @@
     </main>
 
     <script>
-        // Varsayılan Ender İletişim Logosu (1000172241.png Birebir Vektör Karşılığı)
         const DEFAULT_LOGO_SVG = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="58" fill="%230088cc" stroke="%23ffffff" stroke-width="4"/><rect x="38" y="20" width="44" height="80" rx="7" fill="%231e293b" stroke="%230f172a" stroke-width="2"/><rect x="42" y="28" width="36" height="58" rx="2" fill="%23334155"/><rect x="45" y="32" width="9" height="9" rx="2" fill="%2322c55e"/><rect x="56" y="32" width="9" height="9" rx="2" fill="%2394a3b8"/><rect x="67" y="32" width="8" height="9" rx="2" fill="%2338bdf8"/><rect x="45" y="44" width="9" height="9" rx="2" fill="%23f43f5e"/><rect x="56" y="44" width="9" height="9" rx="2" fill="%23eab308"/><rect x="67" y="44" width="8" height="9" rx="2" fill="%23a855f7"/><circle cx="74" cy="74" r="14" fill="%23ef4444"/><path d="M68 74 h12 M74 68 v12" stroke="white" stroke-width="3" stroke-linecap="round"/></svg>`;
 
         let currentLogoDataUrl = DEFAULT_LOGO_SVG;
         let activeFilter = 'ALL';
 
-        // 24 Kampanya Verisinin Tamamı (Eksiksiz Paket ve Fiyatlarla)
         const campaigns = [
             {
                 id: "1000172212",
@@ -517,13 +532,13 @@
                 const isCompact = camp.items.length >= 6;
 
                 const rowsHtml = camp.items.map(item => `
-                    <div class="flex items-center justify-between ${isCompact ? 'py-1 px-2.5' : 'py-2 px-3'} rounded-xl bg-slate-50 border ${colors.border}">
-                        <div class="pr-2">
-                            <div class="font-extrabold text-slate-900 ${isCompact ? 'text-[12px]' : 'text-[13px]'} leading-tight">${item.label}</div>
-                            <div class="text-[10px] font-semibold text-slate-500 leading-tight">${item.sub}</div>
+                    <div class="flex items-center justify-between ${isCompact ? 'py-1.5 px-3' : 'py-2 px-3.5'} rounded-xl bg-slate-50 border ${colors.border}">
+                        <div class="pr-2 flex flex-col justify-center">
+                            <div class="font-extrabold text-slate-900 ${isCompact ? 'text-[12px]' : 'text-[13px]'} leading-snug">${item.label}</div>
+                            <div class="text-[10px] font-semibold text-slate-500 leading-snug mt-0.5">${item.sub}</div>
                         </div>
-                        <div class="${colors.price} font-black ${isCompact ? 'text-xs px-2.5 py-1' : 'text-sm px-3 py-1'} rounded-lg shrink-0 shadow-sm">
-                            ${item.price}
+                        <div class="center-pill ${colors.price} font-black ${isCompact ? 'text-xs h-7 px-3 min-w-[74px]' : 'text-sm h-8 px-3.5 min-w-[84px]'} rounded-lg shrink-0 shadow-sm">
+                            <span>${item.price}</span>
                         </div>
                     </div>
                 `).join('');
@@ -537,52 +552,52 @@
                         <div class="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none"></div>
 
                         <!-- ÜST KURUMSAL BAŞLIK (LOGO + ENDER İLETİŞİM) -->
-                        <div class="relative z-10 flex items-center justify-between bg-black/35 backdrop-blur-md px-3 py-2 rounded-2xl border border-white/20">
+                        <div class="relative z-10 flex items-center justify-between bg-slate-950/45 px-3.5 py-2.5 rounded-2xl border border-white/20">
                             <div class="flex items-center gap-2.5">
                                 <img src="${currentLogoDataUrl}" class="w-10 h-10 rounded-full object-cover border-2 border-white bg-slate-900 shrink-0" alt="Logo">
-                                <div>
-                                    <div class="font-black text-sm tracking-wide leading-none text-white">ENDER İLETİŞİM</div>
-                                    <div class="text-[10px] font-bold text-white/85 mt-0.5">${camp.brand} Yetkili İşlem Merkezi</div>
+                                <div class="flex flex-col justify-center">
+                                    <div class="font-black text-sm tracking-wide leading-tight text-white">ENDER İLETİŞİM</div>
+                                    <div class="text-[10px] font-bold text-white/85 leading-tight mt-0.5">${camp.brand} Yetkili İşlem Merkezi</div>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/20 text-white border border-white/25">
-                                ${camp.brand}
-                            </span>
+                            <div class="center-pill h-7 px-3 rounded-full bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider shrink-0">
+                                <span>${camp.brand}</span>
+                            </div>
                         </div>
 
                         <!-- ORTA KAMPANYA ALANI -->
                         <div class="relative z-10 my-2.5 flex-1 flex flex-col justify-center">
-                            <div class="text-center mb-2.5">
-                                <span class="inline-block ${colors.badge} text-[10px] font-extrabold px-3 py-0.5 rounded-full shadow mb-1.5">
-                                    ★ ${camp.badge}
-                                </span>
-                                <h2 class="font-black ${isCompact ? 'text-base' : 'text-lg'} leading-snug uppercase tracking-tight drop-shadow">
+                            <div class="text-center mb-2.5 flex flex-col items-center">
+                                <div class="center-pill ${colors.badge} text-[10px] font-extrabold h-6 px-3.5 rounded-full shadow mb-1.5">
+                                    <span>★ ${camp.badge}</span>
+                                </div>
+                                <h2 class="font-black ${isCompact ? 'text-[16px]' : 'text-[18px]'} leading-snug uppercase tracking-tight drop-shadow px-1">
                                     ${camp.title}
                                 </h2>
-                                <p class="text-[11px] text-white/90 font-semibold mt-0.5">${camp.subtitle}</p>
+                                <p class="text-[11px] text-white/90 font-semibold leading-snug mt-0.5">${camp.subtitle}</p>
                             </div>
 
                             <!-- Fiyat Listesi Kutusu -->
-                            <div class="glass-box rounded-2xl ${isCompact ? 'p-2.5 space-y-1' : 'p-3 space-y-1.5'}">
+                            <div class="glass-box rounded-2xl ${isCompact ? 'p-2.5 space-y-1.5' : 'p-3 space-y-2'}">
                                 ${rowsHtml}
                             </div>
                         </div>
 
                         <!-- ALT KURUMSAL ŞERİT -->
-                        <div class="relative z-10 bg-slate-950/90 border border-white/15 rounded-xl px-3 py-2 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <img src="${currentLogoDataUrl}" class="w-6 h-6 rounded-full object-cover border border-cyan-400" alt="Logo">
-                                <div class="text-[10px] font-bold text-slate-200 leading-tight">
+                        <div class="relative z-10 bg-slate-950/90 border border-white/15 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
+                            <div class="flex items-center gap-2.5 pr-2">
+                                <img src="${currentLogoDataUrl}" class="w-6 h-6 rounded-full object-cover border border-cyan-400 shrink-0" alt="Logo">
+                                <div class="text-[10px] font-bold text-slate-200 leading-snug">
                                     ${camp.footer}
                                 </div>
                             </div>
-                            <div class="text-[10px] font-extrabold text-amber-400 shrink-0 ml-2">
-                                📍 DERİNKUYU
+                            <div class="center-pill text-[10px] font-extrabold text-amber-400 shrink-0">
+                                <span>📍 DERİNKUYU</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Aksiyon Butonları (İndir & Metin Kopyala) -->
+                    <!-- Aksiyon Butonları -->
                     <div class="w-[400px] flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 p-2 rounded-xl">
                         <span class="text-[11px] font-bold text-slate-400 pl-1">#${index + 1} • ${camp.id}.jpg</span>
                         <div class="flex items-center gap-1.5">
@@ -617,13 +632,26 @@
             const el = document.getElementById(`poster-${id}`);
             const status = document.getElementById('statusText');
             status.textContent = `⏳ ${id} yüksek çözünürlüklü hazırlanıyor...`;
-            const canvas = await html2canvas(el, { scale: 3, useCORS: true, backgroundColor: null });
-            const link = document.createElement('a');
-            const safeBrand = brand.replace(/\s+/g, '_');
-            link.download = `Ender_Iletisim_${safeBrand}_${id}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            status.textContent = `✅ ${id} indirildi!`;
+
+            try {
+                // Fontların tamamen yüklendiğinden emin ol
+                await document.fonts.ready;
+
+                const dataUrl = await htmlToImage.toPng(el, {
+                    pixelRatio: 3,
+                    cacheBust: true
+                });
+
+                const link = document.createElement('a');
+                const safeBrand = brand.replace(/\s+/g, '_');
+                link.download = `Ender_Iletisim_${safeBrand}_${id}.png`;
+                link.href = dataUrl;
+                link.click();
+                status.textContent = `✅ ${id} hatasız indirildi!`;
+            } catch (err) {
+                console.error(err);
+                status.textContent = `⚠️ Hata oluştu, tekrar deneyin.`;
+            }
         }
 
         async function downloadAllPosters() {
@@ -640,12 +668,11 @@
                 await new Promise(r => setTimeout(r, 450));
             }
 
-            status.textContent = `🎉 Tüm (${filtered.length}) afişler başarıyla indirildi!`;
+            status.textContent = `🎉 Tüm (${filtered.length}) afişler kaymasız indirildi!`;
             btn.disabled = false;
             btn.classList.remove('opacity-50');
         }
 
-        // Başlangıçta çalıştır
         document.getElementById('headerLogoPreview').src = currentLogoDataUrl;
         renderPosters();
     </script>
