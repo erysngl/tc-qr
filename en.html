@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ender İletişim - 24 Kampanya Afiş Stüdyosu (Hatasız Hizalama)</title>
+    <title>Ender İletişim - Hikaye & Gönderi Uyumlu Afiş Stüdyosu</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html2canvas yerine metin kayması yapmayan modern html-to-image kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -18,25 +17,35 @@
             background-color: #0b0f19;
             color: #f8fafc;
         }
-        .poster-card {
-            width: 400px;
-            min-height: 520px;
+        /* 9:16 Hikaye & Durum Boyutu (360x640 -> 3x = 1080x1920 HD) */
+        .poster-story {
+            width: 360px;
+            height: 640px;
+            padding: 46px 20px 52px 20px; /* Üst ve alt Facebook/IG arayüz güvenli boşluğu */
+        }
+        /* 4:5 Gönderi Boyutu (360x450 -> 3x = 1080x1350 HD) */
+        .poster-post {
+            width: 360px;
+            min-height: 460px;
+            padding: 20px 20px;
+        }
+        .poster-base {
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
-            border-radius: 16px;
+            box-shadow: 0 20px 45px -15px rgba(0,0,0,0.8);
+            border-radius: 12px;
         }
         .theme-vodafone {
-            background: radial-gradient(circle at 80% 10%, #ff2a2a 0%, #c80000 55%, #5a0000 100%);
+            background: radial-gradient(circle at 80% 10%, #ff2a2a 0%, #c80000 55%, #4a0000 100%);
         }
         .theme-tt {
-            background: radial-gradient(circle at 80% 10%, #00c6ff 0%, #00529b 55%, #001f4d 100%);
+            background: radial-gradient(circle at 80% 10%, #00c6ff 0%, #00529b 55%, #001a40 100%);
         }
         .theme-mepas {
-            background: radial-gradient(circle at 80% 10%, #2563eb 0%, #1e3a8a 55%, #0f172a 100%);
+            background: radial-gradient(circle at 80% 10%, #2563eb 0%, #1e3a8a 55%, #091024 100%);
         }
         .theme-ender {
             background: radial-gradient(circle at 80% 10%, #4f46e5 0%, #1e1b4b 60%, #090d16 100%);
@@ -44,9 +53,8 @@
         .glass-box {
             background: #ffffff;
             color: #0f172a;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
         }
-        /* Kutu içi metinlerin dikeyde milimetrik ortalanması için özel sınıf */
         .center-pill {
             display: inline-flex;
             align-items: center;
@@ -61,44 +69,54 @@
 
     <!-- Üst Kontrol Paneli -->
     <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-4 py-3 shadow-xl">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-3">
-                <img id="headerLogoPreview" src="" alt="Logo" class="w-11 h-11 rounded-full object-cover border-2 border-cyan-400 bg-slate-800">
+                <img id="headerLogoPreview" src="" alt="Logo" class="w-10 h-10 rounded-full object-cover border-2 border-cyan-400 bg-slate-800">
                 <div>
-                    <h1 class="text-lg font-extrabold tracking-tight text-white flex items-center gap-2">
-                        ENDER İLETİŞİM <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">KAYMA DÜZELTİLDİ ✓</span>
+                    <h1 class="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+                        ENDER İLETİŞİM <span class="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">TAM EKRAN UYUMLU</span>
                     </h1>
-                    <p class="text-xs text-slate-400">Türk Telekom • Vodafone • MEPAŞ • Faturamatik Yetkili İşlem Merkezi</p>
+                    <p class="text-[11px] text-slate-400">Facebook • Instagram • WhatsApp Hikaye & Gönderi</p>
                 </div>
+            </div>
+
+            <!-- Format Seçici (Hikaye 9:16 vs Gönderi 4:5) -->
+            <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-cyan-500/40 text-xs font-extrabold">
+                <button onclick="setAspectMode('story')" id="mode-story" class="bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                    📱 Hikaye / Durum (9:16 Tam Ekran)
+                </button>
+                <button onclick="setAspectMode('post')" id="mode-post" class="text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                    🖼️ Normal Gönderi (4:5)
+                </button>
             </div>
 
             <!-- Filtre & Aksiyon Butonları -->
             <div class="flex flex-wrap items-center gap-2">
                 <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 text-xs font-bold">
-                    <button onclick="filterPosters('ALL')" id="btn-ALL" class="filter-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition">Tümü (24)</button>
-                    <button onclick="filterPosters('Türk Telekom')" id="btn-TT" class="filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition">Türk Telekom</button>
-                    <button onclick="filterPosters('Vodafone')" id="btn-VF" class="filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition">Vodafone</button>
-                    <button onclick="filterPosters('MEPAŞ')" id="btn-MP" class="filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition">MEPAŞ</button>
+                    <button onclick="filterPosters('ALL')" id="btn-ALL" class="filter-btn bg-slate-700 text-white px-2.5 py-1.5 rounded-lg transition">Tümü</button>
+                    <button onclick="filterPosters('Türk Telekom')" id="btn-TT" class="filter-btn text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg transition">TT</button>
+                    <button onclick="filterPosters('Vodafone')" id="btn-VF" class="filter-btn text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg transition">Vodafone</button>
+                    <button onclick="filterPosters('MEPAŞ')" id="btn-MP" class="filter-btn text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg transition">MEPAŞ</button>
                 </div>
 
-                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-                    <span>🖼️ Orijinal Logonu Seç</span>
+                <label class="cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+                    <span>🖼️ Logo Seç</span>
                     <input type="file" id="logoUpload" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
                 </label>
 
-                <button onclick="downloadAllPosters()" id="downloadAllBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5">
-                    <span>⬇️ Tüm Afişleri İndir (HD PNG)</span>
+                <button onclick="downloadAllPosters()" id="downloadAllBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-extrabold transition shadow-lg shadow-emerald-600/30 flex items-center gap-1">
+                    <span>⬇️ Tümünü İndir</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Bilgilendirme Çubuğu -->
-    <div class="max-w-7xl mx-auto px-4 mt-5">
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+    <div class="max-w-7xl mx-auto px-4 mt-4">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
             <div class="flex items-center gap-2">
-                <span class="text-base">✅</span>
-                <span><strong>Güncelleme:</strong> İndirilen görsellerdeki yazı kayması sorunu yeni görüntü motoru (html-to-image) ile tamamen giderildi. Kutular tam ortalı iner.</span>
+                <span class="text-base">📐</span>
+                <span><strong>Hikaye / Durum (9:16) Modu Aktif:</strong> Görseller <strong>1080x1920</strong> tam ekran boyutundadır. Facebook, Instagram ve WhatsApp'ta yanlardan kesilmez, üst/alt butonların altında kalmaz!</span>
             </div>
             <span id="statusText" class="font-bold text-amber-400"></span>
         </div>
@@ -114,6 +132,7 @@
 
         let currentLogoDataUrl = DEFAULT_LOGO_SVG;
         let activeFilter = 'ALL';
+        let aspectMode = 'story'; // 'story' (9:16) veya 'post' (4:5)
 
         const campaigns = [
             {
@@ -130,7 +149,7 @@
                     { label: "60 GB + 10 GB Hediye", sub: "3000 DK + Prime Ayrıcalığı", price: "900 ₺" },
                     { label: "80 GB + 10 GB Hediye", sub: "3000 DK + Prime Ayrıcalığı", price: "1.000 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "📲 Yeni faturalı hatta geçenlere müjde! Türk Telekom'dan 12 ay sabit fiyat garantili dev internet paketleri Ender İletişim’de! 🚀 Siz de hemen mağazamıza gelin, bütçenize en uygun tarifeyi yakalayın. 📍 Ender İletişim - Türk Telekom Yetkili İşlem Merkezi"
             },
             {
@@ -149,7 +168,7 @@
                     { label: "Rahattan 25 GB", sub: "1000 DK + 250 SMS", price: "465 ₺" },
                     { label: "Rahattan 30 GB", sub: "1000 DK + 250 SMS", price: "505 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "💡 Faturasız hattınızı faturalıya taşıyarak sabit fiyat rahatlığını yaşayın! Türk Telekom Rahattan tarifeleri 235 ₺'den başlayan fiyatlarla Ender İletişim'de! 📞 İşlemleriniz için hemen mağazamıza bekliyoruz."
             },
             {
@@ -168,7 +187,7 @@
                     { label: "60 GB Tarife", sub: "2000 DK + 1000 SMS", price: "675 ₺" },
                     { label: "Jandarma/MSB Baz", sub: "İlk 2 Ay 285₺ / Kalan 405₺", price: "285 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "🇹🇷 Emniyet, Jandarma ve MSB personelimize özel Türk Telekom ayrıcalıkları Ender İletişim’de! 239 ₺’den başlayan taahhütlü indirimli paketler için mağazamızı ziyaret edebilirsiniz."
             },
             {
@@ -183,7 +202,7 @@
                     { label: "150 GB İnternet", sub: "+ Sınırsız Sosyal Medya", price: "1.400 ₺" },
                     { label: "SINIRSIZ İNTERNET", sub: "Sınırsız DK + SMS Dahil", price: "1.700 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "🌟 5G hızı ve Sınırsız Sosyal Medya keyfi Türk Telekom Prime tarifeleriyle Ender İletişim’de! 500 TL hediye çeki ve yurt dışı kullanım avantajlarını kaçırmayın."
             },
             {
@@ -198,7 +217,7 @@
                     { label: "Faturamatik & Doğalgaz", sub: "Nakit / Kredi Kartına 9 Taksit", price: "ÖDEME" },
                     { label: "Telefon & Aksesuar", sub: "Cihaz, Kılıf ve TL/Paket Yükleme", price: "MAĞAZA" }
                 ],
-                footer: "Ender İletişim - Türk Telekom, Vodafone & MEPAŞ Bayii",
+                footer: "Ender İletişim - TT, Vodafone & MEPAŞ Bayii",
                 caption: "🏪 Faturalı hat geçişleri, fatura ödemeleri ve elektrik abonelik işlemleriniz için Ender İletişim Mağazamıza bekliyoruz! Güler yüzlü hizmet ve en uygun tarifeler burada."
             },
             {
@@ -212,7 +231,7 @@
                     { label: "Ücretsiz 5G SIM", sub: "Uyumlu SIM Kart Değişimi", price: "MAĞAZADA" },
                     { label: "Avantajlı Paketler", sub: "En Uygun 5G Tarife Seçenekleri", price: "HEMEN GEÇ" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "🚀 Geleceğin iletişim teknolojisi 5G heyecanı Türk Telekom kalitesiyle Ender İletişim’de! Siz de en yeni paketlerle tanışmak için mağazamıza uğrayın."
             },
             {
@@ -229,7 +248,7 @@
                     { label: "5G - 500 GB", sub: "5G Ultra Hızlı Modem", price: "1.400 ₺" },
                     { label: "5G - SINIRSIZ", sub: "Limitsiz Ev/İş İnterneti", price: "1.750 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "🌐 Altyapı derdine son! Türk Telekom Turbo Box ile fişe takın, anında yüksek hızlı internetin keyfini çıkarın. 4.5G ve 5G taşınabilir modem çözümleri Ender İletişim’de!"
             },
             {
@@ -248,7 +267,7 @@
                     { label: "60 GB Tarife", sub: "3000 DK + 250 SMS", price: "900 ₺" },
                     { label: "80 GB Tarife", sub: "3000 DK + 250 SMS", price: "1.000 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "💥 Türk Telekom’dan yeni müşterilere özel Lider Tarifeler! 1 GB’tan 80 GB’a kadar her ihtiyaca uygun dev paketler Ender İletişim güvencesiyle mağazamızda!"
             },
             {
@@ -263,7 +282,7 @@
                     { label: "Prime 150 GB", sub: "Sınırsız DK/SMS + Sosyal Medya", price: "1.400 ₺" },
                     { label: "SINIRSIZ İNTERNET", sub: "Her Yöne Sınırsız İletişim", price: "1.700 ₺" }
                 ],
-                footer: "Ender İletişim - Türk Telekom Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Türk Telekom Yetkili Bayii",
                 caption: "👑 Sınırsız Sosyal Medya (FB, Instagram, X, YouTube) ve dev GB'lar Türk Telekom Yeni Nesil Prime tarifelerinde! Ender İletişim'e gelin, numaranızı veya faturasız hattınızı anında taşıyın."
             },
             {
@@ -290,7 +309,7 @@
                     { label: "Fatura & Para Transferi", sub: "Güvenli Ödeme Noktası", price: "HIZLI" },
                     { label: "100 GB Ev İnterneti", sub: "TL ve Paket Yükleme İşlemleri", price: "AVANTAJLI" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "📍 Vodafone ve Türk Telekom resmi yetkili noktası Ender İletişim! Tüm hat geçiş, fatura ödeme ve paket yükleme işlemleriniz için sizleri mağazamıza bekliyoruz."
             },
             {
@@ -303,7 +322,7 @@
                     { label: "Vodafone 5G Teknolojisi", sub: "Ultra Düşük Gecikme, Maksimum Hız", price: "5G HAZIR" },
                     { label: "5G Uyumlu Tarifeler", sub: "En Uygun Geçiş Fırsatları", price: "MAĞAZADA" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "🔴 Vodafone 5G hızı ve ayrıcalıklı tarifeler Ender İletişim’de! Siz de geleceğin hızına geçmek için mağazamızı ziyaret edin."
             },
             {
@@ -331,7 +350,7 @@
                     { label: "20 GB Tarife", sub: "1.000 DK + 250 SMS", price: "430 ₺" },
                     { label: "30 GB Tarife", sub: "1.000 DK + 250 SMS", price: "495 ₺" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "✨ Vodafone faturalıya geçene ilk 3 ay ücretsiz cayma hakkı ve aşım önleyen Durma Özelliği hediye! 265 ₺'den başlayan fiyatlarla Ender İletişim'de! 🔴"
             },
             {
@@ -349,7 +368,7 @@
                     { label: "Red 60 GB", sub: "+ Sınırsız Netflix, YT, Spotify", price: "1.000 ₺" },
                     { label: "Red 100 GB", sub: "+ Sınırsız TikTok, Netflix, YT", price: "1.200 ₺" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "🔥 Sınırsız WhatsApp, Instagram, Netflix ve YouTube keyfi Vodafone Red tarifeleriyle Ender İletişim'de! 5G hızına erişmek ve avantajlı fiyatları yakalamak için hemen mağazamıza bekliyoruz."
             },
             {
@@ -365,7 +384,7 @@
                     { label: "Süper 20 GB", sub: "1000 DK + 250 SMS + Durma", price: "455 ₺" },
                     { label: "Süper 30 GB", sub: "1000 DK + 250 SMS + Durma", price: "560 ₺" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "👵👨‍🦳 65 yaş üstü büyüklerimize özel Vodafone indirimleri Ender İletişim'de! 280 TL'den başlayan fiyatlar ve 200 TL Vodafone Pay hediyesiyle büyüklerimizin yanındayız."
             },
             {
@@ -380,7 +399,7 @@
                     { label: "FreeZone 40 GB", sub: "1000 DK + Sınırsız WhatsApp", price: "680 ₺" },
                     { label: "FreeZone 80 GB", sub: "Sınırsız DK + Sınırsız Sosyal Medya", price: "900 ₺" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "⚡ Gençler müjde! 26 yaş altına özel FreeZone tarifelerinde Bol GB, Sınırsız WhatsApp, 3 ay ChatGPT Go ve Spotify/YouTube Premium hediyesi Ender İletişim'de!"
             },
             {
@@ -395,7 +414,7 @@
                     { label: "50 GB Faturasız", sub: "750 DK + 250 SMS (KPMN165)", price: "475 ₺" },
                     { label: "7-26 Yaş Bonusu", sub: "Gençlere Ekstra İnternet", price: "+20 GB" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "📲 Faturasız hattınızı Vodafone’a taşıyın, 6 ay fiyat garantisi kazanın! 200 TL’den başlayan paketler ve gençlere özel +20 GB hediye fırsatı Ender İletişim’de!"
             },
             {
@@ -411,7 +430,7 @@
                     { label: "30 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "650 ₺" },
                     { label: "50 GB Kontrol", sub: "1000 DK + 250 SMS + Durma", price: "800 ₺" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "🛑 Fatura sürprizlerine son! Fatura aşımını önleyen Durma Özelliği hediyeli Vodafone tarifeleri Ender İletişim'de! 375 ₺'den başlayan fiyatlarla hemen mağazamıza gelin."
             },
             {
@@ -424,7 +443,7 @@
                     { label: "AŞIM YOK!", sub: "Faturanızda Sürpriz Yaşamazsınız", price: "ÜCRETSİZ" },
                     { label: "Tam Kontrol", sub: "Tüm Yeni Faturalı Tarifelerde Geçerli", price: "%100 GÜVEN" }
                 ],
-                footer: "Ender İletişim - Vodafone Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - Vodafone Yetkili Bayii",
                 caption: "🛡️ Sürpriz faturalara geçit yok! Vodafone tarifelerinde faturanız durur, aşım ücreti ödemezsiniz. Bilgi ve geçiş için Ender İletişim’e bekliyoruz!"
             },
             {
@@ -437,7 +456,7 @@
                     { label: "SKTT Güncellemesi", sub: "EPDK Yeni Tüketim Limit Kararı", price: "DUYURU" },
                     { label: "Abonelik & Sözleşme", sub: "Ender İletişim MEPAŞ Noktası", price: "YETKİLİ" }
                 ],
-                footer: "Ender İletişim - MEPAŞ Elektrik Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - MEPAŞ Yetkili Noktası",
                 caption: "⚡ Elektrik abonelerimizin dikkatine! EPDK kararıyla Son Kaynak Tedarik Tarifesi (SKTT) limitleri güncellenmiştir. Detaylı bilgi ve MEPAŞ abonelik işlemleriniz için Ender İletişim’deyiz."
             },
             {
@@ -451,7 +470,7 @@
                     { label: "Ticarethane & Sanayi", sub: "Aydınlatma Dahil Yıllık Limit", price: "15.000 kWh" },
                     { label: "Tarımsal Sulama", sub: "Tarımsal Faaliyet Aboneleri", price: "150 Milyon" }
                 ],
-                footer: "Ender İletişim - MEPAŞ Elektrik Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - MEPAŞ Yetkili Noktası",
                 caption: "📢 MEPAŞ Elektrik aboneleri için yeni tüketim limitleri açıklandı! Mesken, Sanayi ve Tarımsal abonelik limit detaylarını öğrenmek ve fatura işlemlerinizi yaptırmak için Ender İletişim’e uğrayın."
             },
             {
@@ -465,7 +484,7 @@
                     { label: "Faturalandırma", sub: "Son Kaynak Tedarik Tarifesi uygulanır", price: "EPDK" },
                     { label: "Detaylı Bilgi & İşlem", sub: "Mağazamızdan Destek Alabilirsiniz", price: "ÜCRETSİZ" }
                 ],
-                footer: "Ender İletişim - MEPAŞ Elektrik Yetkili İşlem Merkezi",
+                footer: "Ender İletişim - MEPAŞ Yetkili Noktası",
                 caption: "❓ Elektrik tüketim limitinizi aştığınızda ne olur? Serbest tüketici avantajları ve ikili anlaşma fırsatları hakkında bilgi almak için Ender İletişim MEPAŞ Yetkili Noktamıza bekliyoruz!"
             },
             {
@@ -479,10 +498,24 @@
                     { label: "Mesken Grubu KBK", sub: "Konut Tüketici Katsayısı", price: "1,05" },
                     { label: "Diğer Gruplar KBK", sub: "Ticarethane / Sanayi / Tarım", price: "1,0938" }
                 ],
-                footer: "Ender İletişim - MEPAŞ & Faturamatik Yetkili Bayii",
+                footer: "Ender İletişim - MEPAŞ & Faturamatik Bayii",
                 caption: "🧮 Elektrik faturanız nasıl hesaplanıyor? PTF, YEKDEM ve KBK katsayılarıyla fatura hesaplama detayları ve MEPAŞ elektrik ödemeleriniz için Ender İletişim Faturamatik Bayimize davetlisiniz."
             }
         ];
+
+        function setAspectMode(mode) {
+            aspectMode = mode;
+            const storyBtn = document.getElementById('mode-story');
+            const postBtn = document.getElementById('mode-post');
+            if (mode === 'story') {
+                storyBtn.className = 'bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1';
+                postBtn.className = 'text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1';
+            } else {
+                postBtn.className = 'bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1';
+                storyBtn.className = 'text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1';
+            }
+            renderPosters();
+        }
 
         function getThemeClass(brand) {
             if (brand === 'Vodafone') return 'theme-vodafone';
@@ -513,10 +546,10 @@
         function filterPosters(brand) {
             activeFilter = brand;
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.className = 'filter-btn text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition';
+                btn.className = 'filter-btn text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg transition';
             });
             const activeBtnId = brand === 'ALL' ? 'btn-ALL' : brand === 'Türk Telekom' ? 'btn-TT' : brand === 'Vodafone' ? 'btn-VF' : 'btn-MP';
-            document.getElementById(activeBtnId).className = 'filter-btn bg-cyan-600 text-white px-3 py-1.5 rounded-lg transition';
+            document.getElementById(activeBtnId).className = 'filter-btn bg-slate-700 text-white px-2.5 py-1.5 rounded-lg transition';
             renderPosters();
         }
 
@@ -525,19 +558,26 @@
             grid.innerHTML = '';
 
             const filtered = activeFilter === 'ALL' ? campaigns : campaigns.filter(c => c.brand === activeFilter);
+            const sizeClass = aspectMode === 'story' ? 'poster-story' : 'poster-post';
 
             filtered.forEach((camp, index) => {
                 const theme = getThemeClass(camp.brand);
                 const colors = getAccentColors(camp.brand);
-                const isCompact = camp.items.length >= 6;
+                const isDense = camp.items.length >= 7;
+                const isMedium = camp.items.length >= 5 && camp.items.length < 7;
+
+                const rowPad = isDense ? 'py-1 px-2.5' : isMedium ? 'py-1.5 px-3' : 'py-2 px-3';
+                const labelSize = isDense ? 'text-[11px]' : 'text-[12px]';
+                const subSize = isDense ? 'text-[9px]' : 'text-[10px]';
+                const priceBtnSize = isDense ? 'text-[11px] h-6 px-2.5 min-w-[66px]' : 'text-xs h-7 px-3 min-w-[74px]';
 
                 const rowsHtml = camp.items.map(item => `
-                    <div class="flex items-center justify-between ${isCompact ? 'py-1.5 px-3' : 'py-2 px-3.5'} rounded-xl bg-slate-50 border ${colors.border}">
+                    <div class="flex items-center justify-between ${rowPad} rounded-xl bg-slate-50 border ${colors.border}">
                         <div class="pr-2 flex flex-col justify-center">
-                            <div class="font-extrabold text-slate-900 ${isCompact ? 'text-[12px]' : 'text-[13px]'} leading-snug">${item.label}</div>
-                            <div class="text-[10px] font-semibold text-slate-500 leading-snug mt-0.5">${item.sub}</div>
+                            <div class="font-extrabold text-slate-900 ${labelSize} leading-tight">${item.label}</div>
+                            <div class="${subSize} font-semibold text-slate-500 leading-tight mt-0.5">${item.sub}</div>
                         </div>
-                        <div class="center-pill ${colors.price} font-black ${isCompact ? 'text-xs h-7 px-3 min-w-[74px]' : 'text-sm h-8 px-3.5 min-w-[84px]'} rounded-lg shrink-0 shadow-sm">
+                        <div class="center-pill ${colors.price} font-black ${priceBtnSize} rounded-lg shrink-0 shadow-sm">
                             <span>${item.price}</span>
                         </div>
                     </div>
@@ -547,62 +587,62 @@
                 cardWrapper.className = 'flex flex-col items-center gap-2.5';
                 cardWrapper.innerHTML = `
                     <!-- POSTER KANVASI -->
-                    <div id="poster-${camp.id}" class="poster-card ${theme} p-4 text-white select-none">
+                    <div id="poster-${camp.id}" class="poster-base ${sizeClass} ${theme} text-white select-none">
                         <!-- Dekoratif Işık -->
                         <div class="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none"></div>
 
-                        <!-- ÜST KURUMSAL BAŞLIK (LOGO + ENDER İLETİŞİM) -->
-                        <div class="relative z-10 flex items-center justify-between bg-slate-950/45 px-3.5 py-2.5 rounded-2xl border border-white/20">
-                            <div class="flex items-center gap-2.5">
-                                <img src="${currentLogoDataUrl}" class="w-10 h-10 rounded-full object-cover border-2 border-white bg-slate-900 shrink-0" alt="Logo">
+                        <!-- ÜST KURUMSAL BAŞLIK -->
+                        <div class="relative z-10 flex items-center justify-between bg-slate-950/50 px-3 py-2 rounded-2xl border border-white/20">
+                            <div class="flex items-center gap-2">
+                                <img src="${currentLogoDataUrl}" class="w-9 h-9 rounded-full object-cover border-2 border-white bg-slate-900 shrink-0" alt="Logo">
                                 <div class="flex flex-col justify-center">
-                                    <div class="font-black text-sm tracking-wide leading-tight text-white">ENDER İLETİŞİM</div>
-                                    <div class="text-[10px] font-bold text-white/85 leading-tight mt-0.5">${camp.brand} Yetkili İşlem Merkezi</div>
+                                    <div class="font-black text-[13px] tracking-wide leading-tight text-white">ENDER İLETİŞİM</div>
+                                    <div class="text-[9.5px] font-bold text-white/85 leading-tight mt-0.5">${camp.brand} Yetkili İşlem Merkezi</div>
                                 </div>
                             </div>
-                            <div class="center-pill h-7 px-3 rounded-full bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider shrink-0">
+                            <div class="center-pill h-6 px-2.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-wider shrink-0">
                                 <span>${camp.brand}</span>
                             </div>
                         </div>
 
                         <!-- ORTA KAMPANYA ALANI -->
-                        <div class="relative z-10 my-2.5 flex-1 flex flex-col justify-center">
-                            <div class="text-center mb-2.5 flex flex-col items-center">
-                                <div class="center-pill ${colors.badge} text-[10px] font-extrabold h-6 px-3.5 rounded-full shadow mb-1.5">
+                        <div class="relative z-10 my-2 flex-1 flex flex-col justify-center">
+                            <div class="text-center mb-2 flex flex-col items-center">
+                                <div class="center-pill ${colors.badge} text-[9.5px] font-extrabold h-5 px-3 rounded-full shadow mb-1.5">
                                     <span>★ ${camp.badge}</span>
                                 </div>
-                                <h2 class="font-black ${isCompact ? 'text-[16px]' : 'text-[18px]'} leading-snug uppercase tracking-tight drop-shadow px-1">
+                                <h2 class="font-black ${isDense ? 'text-[14px]' : 'text-[16px]'} leading-snug uppercase tracking-tight drop-shadow px-1">
                                     ${camp.title}
                                 </h2>
-                                <p class="text-[11px] text-white/90 font-semibold leading-snug mt-0.5">${camp.subtitle}</p>
+                                <p class="text-[10px] text-white/90 font-semibold leading-snug mt-0.5 px-2">${camp.subtitle}</p>
                             </div>
 
                             <!-- Fiyat Listesi Kutusu -->
-                            <div class="glass-box rounded-2xl ${isCompact ? 'p-2.5 space-y-1.5' : 'p-3 space-y-2'}">
+                            <div class="glass-box rounded-2xl ${isDense ? 'p-2 space-y-1' : 'p-2.5 space-y-1.5'}">
                                 ${rowsHtml}
                             </div>
                         </div>
 
                         <!-- ALT KURUMSAL ŞERİT -->
-                        <div class="relative z-10 bg-slate-950/90 border border-white/15 rounded-xl px-3.5 py-2.5 flex items-center justify-between">
-                            <div class="flex items-center gap-2.5 pr-2">
-                                <img src="${currentLogoDataUrl}" class="w-6 h-6 rounded-full object-cover border border-cyan-400 shrink-0" alt="Logo">
-                                <div class="text-[10px] font-bold text-slate-200 leading-snug">
+                        <div class="relative z-10 bg-slate-950/90 border border-white/15 rounded-xl px-3 py-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2 pr-1">
+                                <img src="${currentLogoDataUrl}" class="w-5 h-5 rounded-full object-cover border border-cyan-400 shrink-0" alt="Logo">
+                                <div class="text-[9.5px] font-bold text-slate-200 leading-tight">
                                     ${camp.footer}
                                 </div>
                             </div>
-                            <div class="center-pill text-[10px] font-extrabold text-amber-400 shrink-0">
+                            <div class="center-pill text-[9.5px] font-extrabold text-amber-400 shrink-0">
                                 <span>📍 DERİNKUYU</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Aksiyon Butonları -->
-                    <div class="w-[400px] flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 p-2 rounded-xl">
-                        <span class="text-[11px] font-bold text-slate-400 pl-1">#${index + 1} • ${camp.id}.jpg</span>
+                    <div class="w-[360px] flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 p-2 rounded-xl">
+                        <span class="text-[11px] font-bold text-slate-400 pl-1">#${index + 1} • ${aspectMode === 'story' ? '9:16 Hikaye' : '4:5 Gönderi'}</span>
                         <div class="flex items-center gap-1.5">
-                            <button onclick="copyCaption('${camp.id}')" id="copy-${camp.id}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-700 transition">
-                                📋 Metni Kopyala
+                            <button onclick="copyCaption('${camp.id}')" id="copy-${camp.id}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-700 transition">
+                                📋 Metin
                             </button>
                             <button onclick="downloadSinglePoster('${camp.id}', '${camp.brand}')" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-extrabold px-3 py-1.5 rounded-lg transition shadow">
                                 ⬇️ PNG İndir
@@ -620,7 +660,7 @@
             navigator.clipboard.writeText(camp.caption);
             const btn = document.getElementById(`copy-${id}`);
             const oldText = btn.innerHTML;
-            btn.innerHTML = '✅ Kopyalandı!';
+            btn.innerHTML = '✅ Kopyalandı';
             btn.classList.replace('bg-slate-800', 'bg-emerald-700');
             setTimeout(() => {
                 btn.innerHTML = oldText;
@@ -631,12 +671,10 @@
         async function downloadSinglePoster(id, brand) {
             const el = document.getElementById(`poster-${id}`);
             const status = document.getElementById('statusText');
-            status.textContent = `⏳ ${id} yüksek çözünürlüklü hazırlanıyor...`;
+            status.textContent = `⏳ ${id} (${aspectMode === 'story' ? '1080x1920' : '1080x1350'}) hazırlanıyor...`;
 
             try {
-                // Fontların tamamen yüklendiğinden emin ol
                 await document.fonts.ready;
-
                 const dataUrl = await htmlToImage.toPng(el, {
                     pixelRatio: 3,
                     cacheBust: true
@@ -644,10 +682,11 @@
 
                 const link = document.createElement('a');
                 const safeBrand = brand.replace(/\s+/g, '_');
-                link.download = `Ender_Iletisim_${safeBrand}_${id}.png`;
+                const suffix = aspectMode === 'story' ? 'Hikaye_9x16' : 'Gonderi_4x5';
+                link.download = `Ender_Iletisim_${safeBrand}_${suffix}_${id}.png`;
                 link.href = dataUrl;
                 link.click();
-                status.textContent = `✅ ${id} hatasız indirildi!`;
+                status.textContent = `✅ ${id} tam ekran uyumlu indirildi!`;
             } catch (err) {
                 console.error(err);
                 status.textContent = `⚠️ Hata oluştu, tekrar deneyin.`;
@@ -663,12 +702,12 @@
             const filtered = activeFilter === 'ALL' ? campaigns : campaigns.filter(c => c.brand === activeFilter);
             for (let i = 0; i < filtered.length; i++) {
                 const camp = filtered[i];
-                status.textContent = `⏳ İndiriliyor (${i + 1}/${filtered.length}): ${camp.title.substring(0, 25)}...`;
+                status.textContent = `⏳ İndiriliyor (${i + 1}/${filtered.length}): ${camp.title.substring(0, 22)}...`;
                 await downloadSinglePoster(camp.id, camp.brand);
                 await new Promise(r => setTimeout(r, 450));
             }
 
-            status.textContent = `🎉 Tüm (${filtered.length}) afişler kaymasız indirildi!`;
+            status.textContent = `🎉 Tüm (${filtered.length}) afişler tam ekran uyumlu indirildi!`;
             btn.disabled = false;
             btn.classList.remove('opacity-50');
         }
